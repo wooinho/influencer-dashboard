@@ -1,0 +1,1767 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>인플루언서 협업 대시보드</title>
+<style>
+  :root {
+    --ink: #1a1d24;
+    --ink-soft: #616875;
+    --ink-faint: #a2a8b4;
+    --line: #eceef2;
+    --line-soft: #f5f6f9;
+    --paper: #fbfbfd;
+    --card: #ffffff;
+    --brand: #4f46e5;
+    --brand-dark: #4338ca;
+    --brand-soft: #eef0fe;
+    --accent: #e11d74;
+    --accent-soft: #fdeaf3;
+    --mint: #0f9d8f;
+    --mint-soft: #d4f5f0;
+    --amber: #b45309;
+    --danger: #e5484d;
+    --radius: 14px;
+    --radius-sm: 9px;
+    --shadow: 0 1px 2px rgba(20,22,30,0.03), 0 4px 16px rgba(20,22,30,0.04);
+    --shadow-sm: 0 1px 2px rgba(20,22,30,0.04);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 44px 28px 96px; }
+
+  header.top { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; padding-bottom: 26px; border-bottom: 1px solid var(--line); }
+  .logo-mark { width: 44px; height: 44px; border-radius: 12px; background: var(--brand); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; flex-shrink: 0; box-shadow: 0 3px 10px rgba(79,70,229,0.28); }
+  .eyebrow { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--brand); font-weight: 700; }
+  h1 { font-size: 27px; font-weight: 800; letter-spacing: -0.03em; margin: 3px 0 2px; }
+  .sub { color: var(--ink-soft); font-size: 14.5px; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .stat { position: relative; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 22px; box-shadow: var(--shadow); }
+  .stat .label { font-size: 12.5px; color: var(--ink-soft); margin-bottom: 10px; font-weight: 600; display: flex; align-items: center; gap: 7px; }
+  .stat .label::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--brand); }
+  .stat:nth-child(2) .label::before { background: var(--mint); }
+  .stat:nth-child(3) .label::before { background: var(--accent); }
+  .stat .value { font-size: 30px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+  .stat .value small { font-size: 14px; font-weight: 600; color: var(--ink-faint); }
+
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; }
+  .panel-head { padding: 22px 26px 0; }
+  .panel-head h2 { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 9px; }
+  .panel-head h2 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--brand); flex-shrink: 0; }
+  .panel-head p { font-size: 12.5px; color: var(--ink-soft); margin-top: 4px; }
+
+  form { padding: 20px 26px 26px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field.full { grid-column: 1 / -1; }
+  label { font-size: 12px; font-weight: 600; color: var(--ink-soft); }
+  input, select {
+    font: inherit; font-size: 14px; padding: 10px 13px; border: 1px solid var(--line);
+    border-radius: var(--radius-sm); background: #fff; color: var(--ink); width: 100%; transition: border-color .15s, box-shadow .15s;
+  }
+  select { cursor: pointer; }
+  input:focus, select:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
+  input::placeholder { color: var(--ink-faint); }
+
+  .form-actions { grid-column: 1 / -1; display: flex; gap: 10px; align-items: center; margin-top: 2px; }
+  button { font: inherit; font-weight: 600; cursor: pointer; border: none; border-radius: var(--radius-sm); transition: transform .1s, background .15s, opacity .15s; }
+  button:active { transform: scale(0.98); }
+  .btn-primary { background: var(--brand); color: #fff; padding: 11px 26px; font-size: 14px; box-shadow: 0 2px 8px rgba(67,56,202,0.25); }
+  .btn-primary:hover { background: var(--brand-dark); }
+  .btn-ghost { background: transparent; color: var(--ink-soft); padding: 11px 16px; font-size: 13px; border: 1px solid var(--line); }
+  .btn-ghost:hover { background: var(--line-soft); color: var(--danger); }
+
+  .toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow-sm); }
+  .toolbar-label { font-size: 13px; font-weight: 700; color: var(--ink); margin-right: 2px; white-space: nowrap; }
+  .list-head { margin: 34px 0 14px; }
+  .list-head h2 { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; display: flex; align-items: center; gap: 9px; }
+  .list-head h2 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--brand); }
+  .list-head p { font-size: 13px; color: var(--ink-soft); margin-top: 3px; }
+  .toolbar input { max-width: 240px; }
+  .toolbar select { max-width: 170px; background: #fff; }
+  .toolbar .spacer { flex: 1; }
+  .count-pill { font-size: 13px; font-weight: 600; color: var(--brand); background: var(--brand-soft); padding: 7px 14px; border-radius: 20px; }
+  .bulk-trash { background: var(--danger); color: #fff; padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: var(--radius-sm); box-shadow: 0 2px 8px rgba(220,38,38,0.25); align-items: center; gap: 4px; }
+  .bulk-trash:hover { background: #b91c1c; }
+  .chk-col { width: 40px; text-align: center; padding-left: 18px !important; padding-right: 0 !important; }
+  .chk-col input { width: 17px; height: 17px; cursor: pointer; accent-color: var(--brand); }
+  tbody tr.row-selected { background: var(--accent-soft); }
+
+  .table-wrap { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow-x: auto; overflow-y: visible; box-shadow: var(--shadow); }
+  table { width: 100%; border-collapse: collapse; min-width: 1120px; }
+  thead th { text-align: left; font-size: 11.5px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; padding: 14px 16px; background: var(--line-soft); border-bottom: 1px solid var(--line); white-space: nowrap; }
+  thead th.num { text-align: right; }
+  tbody td { padding: 14px 16px; font-size: 14px; border-bottom: 1px solid var(--line-soft); vertical-align: middle; white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr { transition: background .12s; }
+  tbody tr:hover { background: var(--line-soft); }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; }
+  .name-cell { display: flex; align-items: center; gap: 12px; }
+  .name-cell .nm { font-weight: 700; letter-spacing: -0.01em; }
+  .name-link { color: var(--ink); text-decoration: none; }
+  .name-link:hover { color: var(--brand); text-decoration: underline; }
+  .name-cell .hd { font-size: 12px; color: var(--ink-faint); }
+  .plat-tag { font-size: 12px; font-weight: 600; padding: 4px 11px; border-radius: 20px; display: inline-block; }
+  .plat-Instagram { background: #fdeef6; color: #d6248a; }
+  .plat-YouTube { background: #fee7e7; color: #e5342e; }
+  .plat-TikTok { background: #e7f7f9; color: #0891a8; }
+  .plat-X { background: #e5e7eb; color: #111827; }
+  .plat-네이버블로그 { background: #e3f5e1; color: #1f9d3d; }
+  .plat-기타 { background: var(--line-soft); color: var(--ink-soft); }
+  .camp-tag { font-size: 12px; font-weight: 700; padding: 4px 11px; border-radius: 8px; display: inline-block; white-space: nowrap; }
+  .camp-프로플랜 { background: #eef0fe; color: #4f46e5; }
+  .camp-ONE { background: #fff1e6; color: #d97706; }
+  .camp-프리스키 { background: #e7f7f0; color: #059669; }
+  .camp-팬시피스트 { background: #fdeaf3; color: #db2777; }
+  .camp-캣차우 { background: #f0ebfe; color: #7c3aed; }
+  .camp-자사몰 { background: #e6f5fb; color: #0284c7; }
+  .camp-기타 { background: var(--line-soft); color: var(--ink-soft); }
+  .brand-tag { font-size: 12px; font-weight: 700; padding: 4px 11px; border-radius: 8px; display: inline-block; white-space: nowrap; }
+  .brand-퓨리나 { background: #fee4e2; color: #c0392b; }
+  .brand-풀무원다논 { background: #dcfce7; color: #15803d; }
+  .brand-매일유업셀렉스 { background: #dbeafe; color: #1d4ed8; }
+  .brand-매일유업앱솔루트산양 { background: #e0f2fe; color: #0369a1; }
+  .brand-CJ문화재단 { background: #f3e8ff; color: #7e22ce; }
+  .brand-한화생명 { background: #fff7d6; color: #a16207; }
+  .brand-CJ나눔재단 { background: #ffedd5; color: #c2410c; }
+  .brand-파울라너 { background: #fef9c3; color: #854d0e; }
+  .brand-젤라또피케 { background: #fce7f3; color: #be185d; }
+  .brand-PT코퍼레이션 { background: #cffafe; color: #0e7490; }
+  .brand-기타 { background: #1a1d24; color: #fff; }
+  .sector-tag { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; display: inline-block; white-space: nowrap; }
+  .sector-펫 { background: #ffe8d9; color: #c2410c; }
+  .sector-패션 { background: #fce7f3; color: #be185d; }
+  .sector-인테리어 { background: #e7f0dc; color: #4d7c0f; }
+  .sector-주부 { background: #fef3c7; color: #a16207; }
+  .sector-신혼부부 { background: #ffe4ec; color: #db2777; }
+  .sector-건강 { background: #d1fae5; color: #047857; }
+  .sector-뷰티 { background: #f3e8ff; color: #9333ea; }
+  .sector-푸드 { background: #ffedd5; color: #ea580c; }
+  .sector-운동 { background: #dbeafe; color: #2563eb; }
+  .sector-기타 { background: #eef2f6; color: #475569; }
+  .tier-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 6px; display: inline-block; white-space: nowrap; }
+  .tier-mega { background: #ede9fe; color: #6d28d9; }
+  .tier-macro { background: var(--brand-soft); color: var(--brand); }
+  .tier-micro { background: var(--mint-soft); color: var(--mint); }
+  .tier-nano { background: #fef3c7; color: var(--amber); }
+  .contact-tag { font-size: 11.5px; font-weight: 600; padding: 3px 9px; border-radius: 6px; display: inline-block; white-space: nowrap; cursor: default; }
+  .contact-max { background: #e0e7ff; color: #4338ca; }
+  .contact-dnad { background: #fae8ff; color: #a21caf; }
+  .contact-dm { background: var(--accent-soft); color: var(--accent); }
+  .contact-email { background: var(--mint-soft); color: var(--mint); }
+  .contact-etc { background: var(--line-soft); color: var(--ink-soft); }
+  .contact-tag.has-memo { cursor: help; position: relative; }
+  .quote-cell { position: relative; font-variant-numeric: tabular-nums; }
+  .quote-cell.has-memo { cursor: help; border-bottom: 1px dashed var(--ink-faint); }
+  .contact-tag.has-memo::after { content: '📝'; margin-left: 4px; font-size: 10px; }
+  .memo-pop { position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; font-size: 12px; font-weight: 500; line-height: 1.5; padding: 8px 11px; border-radius: 8px; width: max-content; max-width: 260px; white-space: normal; text-align: left; opacity: 0; visibility: hidden; transition: opacity .12s; z-index: 20; box-shadow: 0 6px 20px rgba(0,0,0,0.18); pointer-events: none; }
+  .memo-pop::after { content: ''; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); border: 6px solid transparent; border-bottom-color: var(--ink); }
+  .has-memo:hover .memo-pop { opacity: 1; visibility: visible; }
+  .del-btn { background: transparent; color: var(--ink-faint); border: 1px solid var(--line); width: 32px; height: 32px; border-radius: 8px; font-size: 15px; line-height: 1; }
+  .del-btn:hover { color: var(--danger); border-color: var(--danger); background: #fee2e2; }
+  .url-link { color: var(--brand); font-weight: 600; text-decoration: none; white-space: nowrap; }
+  .url-link:hover { text-decoration: underline; }
+
+  .empty { padding: 60px 24px; text-align: center; color: var(--ink-faint); }
+  .empty .em-title { font-size: 15px; font-weight: 700; color: var(--ink-soft); margin-bottom: 4px; }
+
+  .dropzone { border: 2px dashed #d4d6e2; border-radius: var(--radius); padding: 34px 20px; text-align: center; cursor: pointer; transition: border-color .15s, background .15s; }
+  .dropzone:hover { border-color: var(--brand); background: var(--brand-soft); }
+  .dropzone.drag { border-color: var(--brand); background: var(--brand-soft); }
+  .dz-icon { font-size: 26px; color: var(--brand); margin-bottom: 10px; }
+  .dz-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+  .dz-sub { font-size: 13px; color: var(--ink-soft); }
+  .upload-actions { display: flex; align-items: center; gap: 14px; margin-top: 16px; flex-wrap: wrap; }
+  .tpl-link { font-size: 13px; font-weight: 600; color: var(--brand); text-decoration: none; padding: 8px 15px; border: 1px solid var(--line); border-radius: var(--radius-sm); }
+  .tpl-link:hover { background: var(--brand-soft); }
+  .dz-hint { font-size: 12px; color: var(--ink-faint); }
+  .upload-msg { margin-top: 16px; padding: 13px 16px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; }
+  .upload-msg.ok { background: var(--mint-soft); color: var(--mint); }
+  .upload-msg.err { background: var(--accent-soft); color: var(--accent); }
+
+  .footnote { margin-top: 26px; font-size: 12px; color: var(--ink-faint); text-align: center; line-height: 1.7; }
+
+  /* 빠른 입력 */
+  .quick-toolbar { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
+  .quick-toolbar select { max-width: 180px; }
+  .quick-toolbar .spacer { flex: 1; }
+  .quick-check { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--ink-soft); font-weight: 500; cursor: pointer; white-space: nowrap; }
+  .quick-check input { width: auto; cursor: pointer; }
+  .quick-progress { font-size: 13px; font-weight: 600; color: var(--mint); background: var(--mint-soft); padding: 7px 14px; border-radius: 20px; }
+  .qrow { display: grid; grid-template-columns: 1.35fr auto 0.8fr 0.8fr 0.8fr 0.8fr auto; gap: 12px; align-items: center; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius-sm); margin-bottom: 10px; transition: border-color .15s, box-shadow .15s; }
+  .q-extra { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding-top: 10px; margin-top: 2px; border-top: 1px dashed var(--line); }
+  .q-comments-toggle { background: transparent; color: var(--ink-soft); padding: 7px 12px; font-size: 12.5px; border: 1px solid var(--line); border-radius: 8px; margin-left: auto; }
+  .q-comments-toggle:hover { background: var(--line-soft); }
+  .q-comments-panel { grid-column: 1 / -1; margin-top: 2px; }
+  .q-comments-panel textarea { width: 100%; min-height: 80px; font: inherit; font-size: 13.5px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); resize: vertical; }
+
+  .sov-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 0 26px 6px; font-size: 12.5px; color: var(--ink-soft); }
+  .sov-meta .sov-badge { font-weight: 700; color: var(--mint); background: var(--mint-soft); padding: 3px 10px; border-radius: 20px; }
+  .sov-list { padding: 6px 26px 26px; display: flex; flex-direction: column; gap: 12px; }
+  .sov-row { display: grid; grid-template-columns: 130px 1fr 150px; align-items: center; gap: 14px; }
+  .sov-row.sov-own .sov-name { color: var(--brand); font-weight: 800; }
+  .sov-name { font-size: 13.5px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sov-track { position: relative; height: 26px; background: var(--line-soft); border-radius: 8px; overflow: hidden; }
+  .sov-fill { position: absolute; inset: 0 auto 0 0; border-radius: 8px; background: linear-gradient(90deg, var(--brand-soft), var(--brand)); transition: width .4s ease; }
+  .sov-row.sov-own .sov-fill { background: linear-gradient(90deg, #c7ffd8, var(--mint)); }
+  .sov-nums { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .sov-pct { font-size: 15px; font-weight: 800; color: var(--ink); }
+  .sov-vol { font-size: 11.5px; color: var(--ink-faint); }
+  .sov-refresh-note { margin: 4px 26px 0; padding: 12px 14px; background: var(--line-soft); border-radius: var(--radius-sm); font-size: 12px; color: var(--ink-soft); line-height: 1.6; }
+  .sov-brand-select { font: inherit; font-size: 13px; font-weight: 700; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: #fff; color: var(--ink); cursor: pointer; }
+  .sov-empty { margin: 4px 26px 24px; padding: 32px 20px; text-align: center; background: var(--line-soft); border-radius: var(--radius); color: var(--ink-soft); font-size: 13.5px; line-height: 1.7; }
+  .sov-empty .em-title { font-size: 14.5px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+
+  .sov-chart-wrap { padding: 4px 26px 4px; position: relative; }
+  .sov-camp-popover { position: absolute; background: var(--ink); color: #fff; font-size: 12px; line-height: 1.6; padding: 10px 13px; border-radius: 10px; max-width: 260px; box-shadow: 0 6px 20px rgba(0,0,0,0.18); z-index: 30; pointer-events: none; }
+  .sov-camp-popover .cp-title { font-weight: 700; margin-bottom: 5px; }
+  .sov-camp-popover .cp-row { display: flex; justify-content: space-between; gap: 12px; white-space: nowrap; }
+  .sov-camp-popover .cp-row + .cp-row { margin-top: 2px; }
+  .sov-perf-bar, .sov-buzz-bar { opacity: .88; }
+  .sov-perf-view { fill: var(--accent); }
+  .sov-perf-pis { fill: var(--brand); }
+  .sov-buzz-bar { fill: var(--mint); }
+  .sov-insight { margin: 4px 26px 20px; padding: 16px 18px; background: var(--brand-soft); border-radius: var(--radius); font-size: 13px; color: var(--ink); line-height: 1.75; }
+  .sov-insight h3 { font-size: 13px; font-weight: 800; color: var(--brand-dark); margin-bottom: 8px; }
+  .sov-insight ul { padding-left: 18px; }
+  .sov-insight li { margin-bottom: 4px; }
+  .buzz-pending { margin-top: 16px; padding: 16px 18px; background: var(--mint-soft); border-radius: var(--radius); }
+  .buzz-pending-info { font-size: 13px; color: var(--ink); line-height: 1.6; }
+  .sov-chart-wrap svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .sov-axis-label { font-size: 10.5px; fill: var(--ink-faint); font-family: inherit; }
+  .sov-gridline { stroke: var(--line); stroke-width: 1; }
+  .sov-camp-band { fill: var(--mint); opacity: 0.10; }
+  .sov-camp-band.hover { opacity: 0.2; }
+  .sov-camp-count { font-size: 10px; fill: var(--mint); font-weight: 700; font-family: inherit; }
+  .sov-line { fill: none; stroke: var(--brand); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .sov-line.sov-line-basis3 { stroke-dasharray: 5 4; opacity: 0.55; }
+  .sov-dot { fill: var(--brand); stroke: var(--card); stroke-width: 2; cursor: default; }
+  .sov-dot:hover { fill: var(--brand-dark); }
+  .sov-dot-label { font-size: 11.5px; font-weight: 800; fill: var(--brand); font-family: inherit; }
+  .sov-chart-legend { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding: 8px 26px 2px; font-size: 11.5px; color: var(--ink-soft); }
+  .sov-chart-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .sov-chart-legend .lg-swatch { width: 16px; height: 3px; border-radius: 2px; background: var(--brand); display: inline-block; }
+  .sov-chart-legend .lg-swatch.dash { background: repeating-linear-gradient(90deg, var(--brand) 0 5px, transparent 5px 9px); opacity: .6; }
+  .sov-chart-legend .lg-band { width: 12px; height: 12px; border-radius: 3px; background: var(--mint); opacity: .22; display: inline-block; }
+  .qrow:focus-within { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
+  .qrow.saved { border-color: var(--mint); background: #f0fdfa; }
+  .qrow .q-name { display: flex; align-items: center; gap: 11px; min-width: 0; }
+  .qrow .q-name .nm { font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .qrow .q-name .sub2 { font-size: 12px; color: var(--ink-faint); }
+  .q-open { font-size: 12.5px; font-weight: 600; color: #fff; background: var(--brand); padding: 8px 13px; border-radius: 8px; text-decoration: none; white-space: nowrap; }
+  .q-open:hover { background: var(--brand-dark); }
+  .q-open.disabled { background: var(--line); color: var(--ink-faint); pointer-events: none; }
+  .qfield { display: flex; flex-direction: column; gap: 3px; }
+  .qfield span { font-size: 10.5px; font-weight: 600; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.03em; }
+  .qfield input { padding: 8px 10px; font-size: 14px; text-align: right; font-variant-numeric: tabular-nums; }
+  .q-save { background: var(--mint); color: #fff; padding: 9px 16px; font-size: 13px; border-radius: 8px; white-space: nowrap; }
+  .q-save:hover { background: #0f766e; }
+  .quick-empty { padding: 40px 20px; text-align: center; color: var(--ink-faint); font-size: 14px; }
+  @media (max-width: 760px) { .qrow { grid-template-columns: 1fr 1fr 1fr; } .qrow .q-name, .q-open, .q-save { grid-column: 1 / -1; } .q-open, .q-save { justify-self: start; } }
+
+  @media (max-width: 760px) {
+    form { grid-template-columns: repeat(2, 1fr); }
+    h1 { font-size: 24px; }
+    thead th.hide, tbody td.hide { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="logo-mark">✦</div>
+    <div>
+      <div class="eyebrow">Creator Collaboration</div>
+      <h1>인플루언서 협업 대시보드</h1>
+      <p class="sub">협업한 인플루언서를 등록하고 팔로워·조회수·PIS 지표를 한눈에 관리하세요. 변경사항은 실시간으로 팀 전체에 공유됩니다.</p>
+    </div>
+  </header>
+
+  <section class="stats" id="stats"></section>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h2><span class="dot"></span>① 인플루언서 직접 등록</h2>
+      <p>한 명씩 입력할 때 사용하세요. 등록하면 아래 목록에 추가되고 참여율·PIS가 자동 계산됩니다.</p>
+    </div>
+    <form id="add-form">
+      <div class="field">
+        <label for="f-name">인플루언서명</label>
+        <input id="f-name" placeholder="예: 안아줘냥 호동" required>
+      </div>
+      <div class="field">
+        <label for="f-handle">ID / 핸들</label>
+        <input id="f-handle" placeholder="예: cat_hodong">
+      </div>
+      <div class="field">
+        <label for="f-brand">브랜드</label>
+        <select id="f-brand">
+          <option value="">선택</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="f-camp">캠페인</label>
+        <select id="f-camp">
+          <option value="">브랜드 먼저 선택</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="f-sector">분야</label>
+        <select id="f-sector">
+          <option value="">선택</option>
+          <option>펫</option><option>패션</option><option>인테리어</option><option>주부</option><option>신혼부부</option><option>건강</option><option>뷰티</option><option>푸드</option><option>운동</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="f-plat">플랫폼</label>
+        <select id="f-plat">
+          <option>Instagram</option><option>YouTube</option><option>TikTok</option><option>X</option><option>네이버 블로그</option><option>기타</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="f-fol">팔로워 수</label>
+        <input id="f-fol" type="number" min="0" placeholder="0">
+      </div>
+      <div class="field">
+        <label for="f-view">조회수</label>
+        <input id="f-view" type="number" min="0" placeholder="0">
+      </div>
+      <div class="field">
+        <label for="f-like">좋아요 수</label>
+        <input id="f-like" type="number" min="0" placeholder="0">
+      </div>
+      <div class="field">
+        <label for="f-com">댓글 수</label>
+        <input id="f-com" type="number" min="0" placeholder="0">
+      </div>
+      <div class="field">
+        <label for="f-share">공유 수</label>
+        <input id="f-share" type="number" min="0" placeholder="0">
+      </div>
+      <div class="field">
+        <label for="f-campmonth">캠페인 진행월</label>
+        <input id="f-campmonth" type="month">
+      </div>
+      <div class="field full">
+        <label for="f-url">협업 URL</label>
+        <input id="f-url" placeholder="https://... 협업 게시물 링크 (인스타그램 자동 새로고침은 이 링크로 게시물을 찾아요)">
+      </div>
+      <div class="field">
+        <label for="f-contact">컨텍 포인트</label>
+        <select id="f-contact">
+          <option value="">선택 안 함</option>
+          <option>MAX</option><option>디엔에이디</option><option>DM</option><option>이메일</option>
+        </select>
+      </div>
+      <div class="field" style="grid-column: span 1">
+        <label for="f-contactmemo">컨텍 메모 <span id="f-contactmemo-hint" style="color:var(--ink-faint);font-weight:400"></span></label>
+        <input id="f-contactmemo" placeholder="계정·담당자·회신 여부 등">
+      </div>
+      <div class="field">
+        <label for="f-quote">견적 (고객사 청구액)</label>
+        <input id="f-quote" type="number" min="0" placeholder="0">
+      </div>
+      <div class="field">
+        <label for="f-cost">실비 (인플루언서 지급액)</label>
+        <input id="f-cost" type="number" min="0" placeholder="0">
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">＋ 등록하기</button>
+        <button type="button" class="btn-ghost" id="clear-all">전체 삭제</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h2><span class="dot" style="background:var(--mint)"></span>② 엑셀 · CSV 대량 업로드</h2>
+      <p>여러 명을 한꺼번에 등록할 때 사용하세요. 같은 "ID/핸들 + 캠페인" 조합이 이미 있으면 새로 추가하지 않고 그 행을 최신 값으로 업데이트해요 — 수치를 갱신한 파일을 다시 올리는 방식으로 최신화할 수 있어요.</p>
+    </div>
+    <div style="padding: 20px 26px 26px;">
+      <div id="dropzone" class="dropzone">
+        <div class="dz-icon">⬆</div>
+        <div class="dz-title">엑셀·CSV 파일을 여기로 끌어다 놓기</div>
+        <div class="dz-sub">또는 클릭해서 파일 선택 (.xlsx, .xls, .csv)</div>
+        <input type="file" id="file-input" accept=".xlsx,.xls,.csv" hidden>
+      </div>
+      <div class="upload-actions">
+        <a class="tpl-link" id="tpl-link" download="인플루언서_업로드_양식.xlsx">↓ 엑셀 양식 내려받기 (필터·드롭다운 포함)</a>
+        <span class="dz-hint">헤더 행에 인플루언서명·ID/핸들·브랜드·캠페인·팔로워수·조회수·좋아요수·댓글수·공유수·캠페인 진행월·컨텍 포인트·견적·실비 등을 적어주세요 (열 순서는 상관없어요, 헤더 이름으로 자동 인식됩니다). "엑셀 양식 내려받기"를 쓰면 가장 안전해요.</span>
+      </div>
+      <div id="upload-msg" class="upload-msg" style="display:none;"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h2><span class="dot" style="background:var(--accent)"></span>③ 빠른 지표 입력</h2>
+      <p>검색하거나 캠페인을 선택하면 해당 인플루언서만 나타납니다. 게시물을 열어 숫자를 확인하고 조회수·좋아요·댓글을 바로 수정하세요.</p>
+    </div>
+    <div style="padding: 20px 26px 26px;">
+      <div class="quick-toolbar">
+        <input id="quick-search" placeholder="이름 · ID로 검색" style="max-width:240px">
+        <select id="quick-filter-camp">
+          <option value="">캠페인 선택</option>
+          <option>프로플랜</option><option>ONE</option><option>프리스키</option><option>팬시피스트</option><option>캣차우</option><option>자사몰</option>
+        </select>
+        <div class="spacer"></div>
+        <span class="quick-progress" id="quick-progress"></span>
+      </div>
+      <div id="quick-list"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h2><span class="dot" style="background:var(--mint)"></span>④ 브랜드 통합 분석 (SOV · 조회수·PIS · 버즈량)</h2>
+      <p>선택한 브랜드의 쿼리 SOV(리스닝마인드 기반), 인플루언서 조회수·PIS, 썸트렌드 버즈량을 같은 x축(월)으로 나란히 놓고 교차 비교할 수 있어요.</p>
+    </div>
+    <div class="sov-meta">
+      <label style="display:flex;align-items:center;gap:8px;font-weight:700;color:var(--ink)">브랜드
+        <select class="sov-brand-select" id="sov-brand-select"></select>
+      </label>
+      <span class="sov-badge" id="sov-updated">마지막 갱신: -</span>
+      <span>전체 검색량 <b id="sov-grand">-</b> 기준 · 새로고침은 Claude 세션에서 "SOV 갱신해줘"라고 요청하면 리스닝마인드에서 다시 조회해 반영합니다</span>
+    </div>
+
+    <div id="sov-empty" class="sov-empty" style="display:none"></div>
+    <div id="sov-body">
+      <div class="panel-head" style="padding-top:6px">
+        <h2 style="font-size:14px" id="sov-trend-title"><span class="dot" style="background:var(--brand)"></span>SOV 추이 × 캠페인 진행월</h2>
+        <p>선택한 브랜드의 쿼리 SOV 월별 변화 위에, 그 달에 진행된 인플루언서 캠페인 건수(초록 배경)를 겹쳐서 보여줘요. 배경에 마우스를 올리면 그 달 캠페인을 진행한 인플루언서 목록이 뜹니다.</p>
+      </div>
+      <div class="sov-chart-wrap">
+        <svg id="sov-chart" viewBox="0 0 760 230"></svg>
+        <div class="sov-camp-popover" id="sov-camp-popover" style="display:none"></div>
+      </div>
+      <div class="sov-chart-legend" id="sov-legend"></div>
+
+      <div class="panel-head" style="padding-top:14px">
+        <h2 style="font-size:13.5px"><span class="dot" style="background:var(--accent)"></span>월별 조회수 · PIS</h2>
+        <p>같은 달 캠페인 진행 인플루언서들의 조회수·PIS 합계예요. 위 SOV 그래프와 같은 달을 나란히 비교해보세요.</p>
+      </div>
+      <div class="sov-chart-wrap"><svg id="sov-perf-chart" viewBox="0 0 760 160"></svg></div>
+      <div class="sov-chart-legend" id="sov-perf-legend"></div>
+
+      <div class="panel-head" style="padding-top:14px">
+        <h2 style="font-size:13.5px"><span class="dot" style="background:var(--mint)"></span>월별 썸트렌드 버즈량</h2>
+        <p>아래 ⑤에서 업로드한 버즈 데이터가 있으면 여기 같은 x축(월)으로 표시돼요. SOV·조회수·PIS·버즈량을 위아래로 나란히 보면서 어떤 달에 뭐가 같이 움직였는지 비교해보세요.</p>
+      </div>
+      <div class="sov-chart-wrap"><svg id="sov-buzz-chart" viewBox="0 0 760 140"></svg></div>
+      <div class="sov-chart-legend" id="sov-buzz-legend"></div>
+
+      <div class="sov-insight" id="sov-insight" style="display:none"></div>
+
+      <div class="sov-list" id="sov-list"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h2><span class="dot" style="background:var(--accent)"></span>⑤ 썸트렌드 버즈 데이터 업로드 (선택)</h2>
+      <p>썸트렌드 "언급량" 탭에서 내려받은 일별 리포트(엑셀)를 그대로 업로드하면 자동으로 월별 합산해요. 브랜드명은 리포트에 없어서, 업로드 후 어느 브랜드 데이터인지 한 번 확인해주세요. 결과 그래프는 위 ④ 패널에서 SOV·조회수·PIS와 나란히 보여요.</p>
+    </div>
+    <div style="padding: 20px 26px 26px;">
+      <div id="buzz-dropzone" class="dropzone">
+        <div class="dz-icon">⬆</div>
+        <div class="dz-title">썸트렌드 버즈 리포트를 여기로 끌어다 놓기</div>
+        <div class="dz-sub">또는 클릭해서 파일 선택 (.xlsx, .xls, .csv)</div>
+        <input type="file" id="buzz-file-input" accept=".xlsx,.xls,.csv" hidden>
+      </div>
+      <div id="buzz-upload-msg" class="upload-msg" style="display:none;"></div>
+      <div id="buzz-pending" class="buzz-pending" style="display:none">
+        <div id="buzz-pending-info" class="buzz-pending-info"></div>
+        <label style="display:flex;align-items:center;gap:8px;font-weight:700;color:var(--ink);margin-top:10px">이 데이터는 어느 브랜드 것인가요?
+          <select class="sov-brand-select" id="buzz-pending-brand"></select>
+        </label>
+        <div class="form-actions" style="margin-top:12px">
+          <button type="button" class="btn-primary" id="buzz-pending-confirm">이 데이터 반영</button>
+          <button type="button" class="btn-ghost" id="buzz-pending-cancel">취소</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="list-head">
+    <h2><span class="dot"></span>전체 인플루언서 목록</h2>
+    <p>등록된 인플루언서 전체 목록이에요. 브랜드·캠페인·분야·플랫폼으로 걸러보거나 이름을 검색할 수 있고, 체크해서 한 번에 삭제할 수도 있어요.</p>
+  </div>
+
+  <div class="toolbar">
+    <span class="toolbar-label">🔍 검색·필터</span>
+    <input id="search" placeholder="인플루언서명 또는 ID로 검색">
+    <select id="filter-brand">
+      <option value="">브랜드 전체</option>
+    </select>
+    <select id="filter-camp">
+      <option value="">캠페인 전체</option>
+    </select>
+    <select id="filter-sector">
+      <option value="">분야 전체</option>
+      <option>펫</option><option>패션</option><option>인테리어</option><option>주부</option><option>신혼부부</option><option>건강</option><option>뷰티</option><option>푸드</option><option>운동</option>
+    </select>
+    <select id="filter-plat">
+      <option value="">플랫폼 전체</option>
+      <option>Instagram</option><option>YouTube</option><option>TikTok</option><option>X</option><option>네이버 블로그</option><option>기타</option>
+    </select>
+    <select id="filter-tier">
+      <option value="">팔로워수 전체</option>
+      <option value="mega">메가 (100만+)</option>
+      <option value="macro">매크로 (10만~100만)</option>
+      <option value="micro">마이크로 (1만~10만)</option>
+      <option value="nano">나노 (1만 미만)</option>
+    </select>
+    <select id="sort">
+      <option value="none">전체</option>
+      <option value="fol">팔로워 많은순</option>
+      <option value="view">조회수 높은순</option>
+      <option value="pis">PIS 높은순</option>
+      <option value="er">참여율 높은순</option>
+    </select>
+    <div class="spacer"></div>
+    <button id="bulk-trash" class="bulk-trash" style="display:none">🗑 선택 삭제 <span id="bulk-count">0</span></button>
+    <span class="count-pill" id="count-pill">0명</span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="chk-col"><input type="checkbox" id="check-all" title="전체 선택"></th>
+          <th>인플루언서</th>
+          <th>브랜드</th>
+          <th>캠페인</th>
+          <th>분야</th>
+          <th>플랫폼</th>
+          <th>컨텍</th>
+          <th class="num">팔로워</th>
+          <th class="num">조회수</th>
+          <th class="num">좋아요</th>
+          <th class="num">댓글</th>
+          <th class="num">공유</th>
+          <th class="num">PIS</th>
+          <th class="num">견적</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <div id="storage-warn" style="display:none; margin-top:20px; padding:13px 16px; background:#fef3c7; color:#92400e; border-radius:10px; font-size:13px; text-align:center;">⚠ 이 환경에서는 데이터가 저장되지 않아 새로고침 시 초기화됩니다. 웹서버에 올리거나 브라우저에서 열면 자동 저장됩니다.</div>
+  <p class="footnote">데이터는 이 브라우저에 자동 저장됩니다<br>참여율 = (좋아요 + 댓글) ÷ 팔로워 × 100 · PIS = 좋아요 + 댓글 + 조회수</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ===== 팀 공유 버전: Supabase에 연결되어 실시간으로 동기화됩니다 =====
+const SUPABASE_URL = 'https://tusvdqqpxztkfshrtqph.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_4gKXCXn0vcDqPxem0NsTYg_jnVdYjLn';
+const TABLE = 'influencers';
+let supa = null;
+let cloudReady = false;
+try {
+  if (SUPABASE_URL !== 'DISABLED' && window.supabase && window.supabase.createClient) {
+    supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    cloudReady = true;
+  }
+} catch(e) { console.error('Supabase 클라이언트 초기화 실패:', e); }
+
+window.addEventListener('error', function(e){
+  const box = document.getElementById('storage-warn');
+  if (box){ box.style.display='block'; box.style.background='#fee2e2'; box.style.color='#991b1b';
+    box.textContent = '⚠ 오류가 발생했습니다: ' + (e.message || e.error) + ' — 강력 새로고침(Ctrl/Cmd+Shift+R)을 시도해 주세요.'; }
+});
+const $ = id => document.getElementById(id);
+const fmt = n => Number(n).toLocaleString('ko-KR');
+const selectedIds = new Set();  // 목록에서 체크된 인플루언서 id
+let storageOK = true;           // localStorage 사용 가능 여부 (file://에서 막힐 수 있음)
+
+// 브랜드 → 하위 캠페인 매핑 (캠페인이 아직 없는 브랜드는 빈 배열 → 직접 입력 허용)
+const BRANDS = {
+  '퓨리나': ['프로플랜','ONE','프리스키','팬시피스트','캣차우','자사몰'],
+  '풀무원다논': ['그릭','카페','요프로'],
+  '매일유업 셀렉스': [],
+  '매일유업 앱솔루트 산양': [],
+  'CJ 문화재단': [],
+  '한화생명': [],
+  'CJ 나눔재단': [],
+  '파울라너': [],
+  '젤라또피케': [],
+  'PT코퍼레이션': [],
+};
+const BRAND_LIST = Object.keys(BRANDS);
+const SECTORS = ['펫','패션','인테리어','주부','신혼부부','건강','뷰티','푸드','운동'];
+
+let data = [];
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+const SEED = [
+  { id: uid(), name: '안아줘냥 호동', handle: 'cat_hodong', brand: '퓨리나', camp: '프로플랜', sector: '펫', plat: 'Instagram', fol: 1280000, url: 'https://instagram.com/cat_hodong', view: 0, like: 5200, com: 210, share: 0, commentsText: '', lastChecked: null, campMonth: '', contact: 'DM', contactMemo: '인스타 DM 발송, 회신 완료', quote: 3000000, cost: 2000000 },
+  { id: uid(), name: '뷰티로그', handle: 'beautylog', brand: '퓨리나', camp: 'ONE', sector: '뷰티', plat: 'YouTube', fol: 412000, url: 'https://youtube.com/@beautylog', view: 95000, like: 8900, com: 640, share: 0, commentsText: '', lastChecked: null, campMonth: '', contact: '이메일', contactMemo: 'contact@beautylog.com, 제안서 발송', quote: 5000000, cost: 3500000 },
+  { id: uid(), name: '데일리푸드', handle: 'daily.food', brand: '풀무원다논', camp: '그릭', sector: '건강', plat: 'Instagram', fol: 56000, url: 'https://instagram.com/daily.food', view: 0, like: 2100, com: 95, share: 0, commentsText: '', lastChecked: null, campMonth: '', contact: 'MAX', contactMemo: '', quote: 800000, cost: 500000 },
+];
+
+// 로컬 백업(오프라인/클라우드 실패 대비)
+const LKEY = 'influencer_dashboard_v8';
+function localSave(){ try { localStorage.setItem(LKEY, JSON.stringify(data)); } catch(e){ storageOK = false; } }
+function localLoad(){ try { return JSON.parse(localStorage.getItem(LKEY)) || []; } catch(e){ storageOK = false; return []; } }
+
+// 클라우드에서 전체 불러오기
+async function cloudLoad(){
+  const { data: rows, error } = await supa.from(TABLE).select('*').order('updated_at', { ascending: true });
+  if (error) throw error;
+  return rows || [];
+}
+
+// 저장: 클라우드면 전체 동기화(업서트 + 사라진 행 삭제), 아니면 로컬
+async function save(){
+  localSave(); // 항상 로컬 백업
+  if (!cloudReady || !supa) return;
+  try {
+    // 1) 현재 data 전체 업서트
+    if (data.length){
+      const payload = data.map(r => ({
+        id: r.id, name: r.name||'', handle: r.handle||'', brand: r.brand||'', camp: r.camp||'',
+        sector: r.sector||'', plat: r.plat||'기타', fol: r.fol||0, url: r.url||'',
+        view: r.view||0, like: r.like||0, com: r.com||0, share: r.share||0,
+        commentsText: r.commentsText||'', lastChecked: r.lastChecked||null, campMonth: r.campMonth||'', contact: r.contact||'',
+        contactMemo: r.contactMemo||'', quote: r.quote||0, cost: r.cost||0, updated_at: new Date().toISOString(),
+      }));
+      const { error } = await supa.from(TABLE).upsert(payload);
+      if (error) throw error;
+    }
+  } catch(e){ console.error('cloud save 실패:', e); showCloudErr(); }
+}
+
+// 특정 id들 클라우드에서 삭제
+async function cloudDelete(ids){
+  localSave();
+  if (!cloudReady || !supa) return;
+  try {
+    const { error } = await supa.from(TABLE).delete().in('id', ids);
+    if (error) throw error;
+  } catch(e){ console.error('cloud delete 실패:', e); showCloudErr(); }
+}
+
+function showCloudErr(){
+  const w = document.getElementById('storage-warn');
+  if (w){ w.style.display='block'; w.style.background='#fee2e2'; w.style.color='#991b1b';
+    w.textContent = '⚠ 클라우드 저장에 실패했어요. 인터넷 연결이나 Supabase 설정을 확인해 주세요. (변경사항은 이 브라우저에는 임시 저장됨)'; }
+}
+
+
+const pis = r => r.like + r.com + (r.view || 0);
+const er = r => r.fol > 0 ? ((r.like + r.com) / r.fol * 100) : 0;
+function tier(v){ if (v >= 3) return ['tier-high','높음']; if (v >= 1) return ['tier-mid','보통']; return ['tier-low','낮음']; }
+function initials(name){ const clean = name.replace(/^@/, ''); return clean.slice(0, 2).toUpperCase(); }
+// 팔로워 기준 자동 티어 판별: 메가 100만↑ / 매크로 10만~100만 / 마이크로 1만~10만 / 나노 1만 미만
+function tierOf(fol){
+  const f = +fol || 0;
+  if (f >= 1000000) return { key: 'mega', label: '메가', desc: '100만+' };
+  if (f >= 100000)  return { key: 'macro', label: '매크로', desc: '10만~100만' };
+  if (f >= 10000)   return { key: 'micro', label: '마이크로', desc: '1만~10만' };
+  return { key: 'nano', label: '나노', desc: '1만 미만' };
+}
+function contactKey(c){
+  return { 'MAX':'max', '디엔에이디':'dnad', 'DM':'dm', '이메일':'email' }[c] || 'etc';
+}
+
+function renderStats(){
+  const totView = data.reduce((s,r)=>s+(r.view||0), 0);
+  const avgPis = data.length ? data.reduce((s,r)=>s+pis(r), 0) / data.length : 0;
+  const cards = [
+    ['등록 인플루언서', fmt(data.length) + '<small> 명</small>'],
+    ['인플루언서 조회수', fmt(totView)],
+    ['평균 PIS', fmt(Math.round(avgPis))],
+  ];
+  $('stats').innerHTML = cards.map(([l,v]) =>
+    `<div class="stat"><div class="label">${l}</div><div class="value">${v}</div></div>`
+  ).join('');
+}
+
+function renderTable(){
+  const q = $('search').value.trim().toLowerCase();
+  const fBrand = $('filter-brand').value;
+  const fCamp = $('filter-camp').value;
+  const fSector = $('filter-sector').value;
+  const fPlat = $('filter-plat').value;
+  const fTier = $('filter-tier').value;
+  const sortKey = $('sort').value;
+  let rows = data.filter(r =>
+    (r.name.toLowerCase().includes(q) || (r.handle || '').toLowerCase().includes(q)) &&
+    (!fBrand || r.brand === fBrand) &&
+    (!fCamp || r.camp === fCamp) &&
+    (!fSector || r.sector === fSector) &&
+    (!fPlat || r.plat === fPlat) &&
+    (!fTier || tierOf(r.fol).key === fTier)
+  );
+  rows.sort((a,b) => {
+    if (sortKey === 'fol') return b.fol - a.fol;
+    if (sortKey === 'view') return (b.view||0) - (a.view||0);
+    if (sortKey === 'pis') return pis(b) - pis(a);
+    if (sortKey === 'er') return er(b) - er(a);
+    return 0; // 'none' = 등록 순서 유지
+  });
+
+  const filtered = fBrand || fCamp || fSector || fPlat || fTier || q;
+
+  $('count-pill').textContent = filtered
+    ? `${fmt(rows.length)}명 / 전체 ${fmt(data.length)}명`
+    : `전체 ${fmt(data.length)}명`;
+
+  if (rows.length === 0) {
+    const msg = data.length === 0
+      ? '<div class="em-title">아직 등록된 인플루언서가 없습니다</div>위 폼에서 추가하거나 엑셀을 업로드하세요.'
+      : '<div class="em-title">조건에 맞는 결과가 없습니다</div>검색어나 필터를 바꿔보세요.';
+    $('tbody').innerHTML = `<tr><td colspan="14"><div class="empty">${msg}</div></td></tr>`;
+    return;
+  }
+
+  $('tbody').innerHTML = rows.map(r => {
+    const campClass = ['프로플랜','ONE','프리스키','팬시피스트','캣차우','자사몰'].includes(r.camp) ? r.camp : '기타';
+    const camp = r.camp ? `<span class="camp-tag camp-${campClass}">${escapeHtml(r.camp)}</span>` : '<span style="color:var(--ink-faint)">—</span>';
+    return `<tr>
+      <td class="chk-col"><input type="checkbox" class="row-chk" data-id="${r.id}"></td>
+      <td><div class="name-cell"><div><div class="nm">${fixUrl(r.url) ? `<a href="${escapeHtml(fixUrl(r.url))}" target="_blank" rel="noopener" class="name-link">${escapeHtml(r.name)}</a>` : escapeHtml(r.name)}</div>${r.handle ? `<div class="hd">@${escapeHtml(r.handle)}</div>` : ''}</div></div></td>
+      <td>${r.brand ? `<span class="brand-tag brand-${BRAND_LIST.includes(r.brand) ? r.brand.replace(/\s/g,'') : '기타'}">${escapeHtml(r.brand)}</span>` : '<span style="color:var(--ink-faint)">—</span>'}</td>
+      <td>${camp}</td>
+      <td>${r.sector ? `<span class="sector-tag sector-${SECTORS.includes(r.sector) ? r.sector : '기타'}">${escapeHtml(r.sector)}</span>` : '<span style="color:var(--ink-faint)">—</span>'}</td>
+      <td><span class="plat-tag plat-${String(r.plat).replace(/\s/g,'')}">${r.plat}</span></td>
+      <td>${r.contact
+        ? `<span class="contact-tag contact-${contactKey(r.contact)}${r.contactMemo ? ' has-memo' : ''}">${escapeHtml(r.contact)}${r.contactMemo ? `<span class="memo-pop">${escapeHtml(r.contactMemo)}</span>` : ''}</span>`
+        : '<span style="color:var(--ink-faint)">—</span>'}</td>
+      <td class="num">${(() => { const t = tierOf(r.fol); return `<span class="tier-badge tier-${t.key}" style="margin-bottom:3px">${t.label}</span><div>${fmt(r.fol)}</div>`; })()}</td>
+      <td class="num">${fmt(r.view || 0)}</td>
+      <td class="num">${fmt(r.like)}</td>
+      <td class="num">${fmt(r.com)}</td>
+      <td class="num">${fmt(r.share || 0)}</td>
+      <td class="num" style="color:var(--brand);font-weight:700">${fmt(pis(r))}</td>
+      <td class="num">${(() => {
+        const q = r.quote || 0, c = r.cost || 0;
+        if (!q && !c) return '<span style="color:var(--ink-faint)">—</span>';
+        const margin = q - c;
+        const rate = q > 0 ? Math.round(margin / q * 100) : 0;
+        const memo = `실비 ${fmt(c)}원 · 마진 ${fmt(margin)}원 (${rate}%)`;
+        return `<span class="quote-cell has-memo">${fmt(q)}<span class="memo-pop">${escapeHtml(memo)}</span></span>`;
+      })()}</td>
+    </tr>`;
+  }).join('');
+
+  // 체크박스: 현재 화면 행 기준으로 선택 상태 복원 + 이벤트
+  const rowChecks = document.querySelectorAll('.row-chk');
+  rowChecks.forEach(cb => {
+    cb.checked = selectedIds.has(cb.dataset.id);
+    cb.closest('tr').classList.toggle('row-selected', cb.checked);
+    cb.onchange = () => {
+      if (cb.checked) selectedIds.add(cb.dataset.id);
+      else selectedIds.delete(cb.dataset.id);
+      cb.closest('tr').classList.toggle('row-selected', cb.checked);
+      syncSelectionUI();
+    };
+  });
+
+  // 전체 선택 체크박스 = 현재 보이는 행 전체 토글
+  const checkAll = $('check-all');
+  const visibleIds = rows.map(r => r.id);
+  checkAll.checked = visibleIds.length > 0 && visibleIds.every(id => selectedIds.has(id));
+  checkAll.onchange = () => {
+    if (checkAll.checked) visibleIds.forEach(id => selectedIds.add(id));
+    else visibleIds.forEach(id => selectedIds.delete(id));
+    renderTable();
+  };
+  syncSelectionUI();
+}
+
+// 선택 상태 하단 삭제 버튼 표시 갱신
+function syncSelectionUI(){
+  const n = selectedIds.size;
+  const btn = $('bulk-trash');
+  $('bulk-count').textContent = n;
+  btn.style.display = n > 0 ? 'inline-flex' : 'none';
+}
+
+// ---- 빠른 지표 입력 ----
+function isEmpty(r){ return (r.view||0) === 0 && (r.like||0) === 0 && (r.com||0) === 0; }
+
+function renderQuick(){
+  const q = $('quick-search').value.trim().toLowerCase();
+  const fCamp = $('quick-filter-camp').value;
+
+  // 검색어도 캠페인 선택도 없으면 목록을 접어둔다 (길어지지 않게)
+  if (!q && !fCamp) {
+    $('quick-progress').textContent = '';
+    $('quick-list').innerHTML = `<div class="quick-empty">위에서 이름을 검색하거나 캠페인을 선택하면 해당 인플루언서가 여기에 표시됩니다.</div>`;
+    return;
+  }
+
+  const matchQ = r => r.name.toLowerCase().includes(q) || (r.handle || '').toLowerCase().includes(q);
+  let rows = data.filter(r => matchQ(r) && (!fCamp || r.camp === fCamp));
+
+  const total = data.filter(r => !fCamp || r.camp === fCamp).length;
+  const done = data.filter(r => (!fCamp || r.camp === fCamp) && !isEmpty(r)).length;
+  $('quick-progress').textContent = (fCamp && !q) ? `입력 완료 ${done} / ${total}` : '';
+
+  if (rows.length === 0) {
+    $('quick-list').innerHTML = `<div class="quick-empty">${data.length === 0 ? '먼저 인플루언서를 등록하거나 엑셀을 업로드하세요.' : '조건에 맞는 인플루언서가 없습니다.'}</div>`;
+    return;
+  }
+
+  $('quick-list').innerHTML = rows.map(r => {
+    const qhref = fixUrl(r.url);
+    const open = qhref
+      ? `<a class="q-open" href="${escapeHtml(qhref)}" target="_blank" rel="noopener">게시물 열기 ↗</a>`
+      : `<span class="q-open disabled">링크 없음</span>`;
+    return `<div class="qrow" data-id="${r.id}">
+      <div class="q-name">
+        <div style="min-width:0">
+          <div class="nm">${escapeHtml(r.name)}</div>
+          <div class="sub2">${r.camp ? escapeHtml(r.camp) + ' · ' : ''}${r.plat}</div>
+        </div>
+      </div>
+      ${open}
+      <label class="qfield"><span>조회수</span><input type="number" min="0" data-f="view" value="${r.view||0}"></label>
+      <label class="qfield"><span>좋아요</span><input type="number" min="0" data-f="like" value="${r.like||0}"></label>
+      <label class="qfield"><span>댓글</span><input type="number" min="0" data-f="com" value="${r.com||0}"></label>
+      <label class="qfield"><span>공유</span><input type="number" min="0" data-f="share" value="${r.share||0}"></label>
+      <button class="q-save" data-id="${r.id}">저장</button>
+      <div class="q-extra">
+        <button type="button" class="q-comments-toggle" data-id="${r.id}">💬 댓글 내용 ${r.commentsText ? '보기/수정' : '입력'} ▾</button>
+      </div>
+      <div class="q-comments-panel" id="qc-${r.id}" style="display:none">
+        <textarea data-f="commentsText" placeholder="확인한 댓글 내용을 한 줄에 하나씩 붙여넣으세요 (예: @user1: 우와 저도 사고싶어요!)">${escapeHtml(r.commentsText||'')}</textarea>
+      </div>
+    </div>`;
+  }).join('');
+
+  // 저장 동작
+  function saveRow(rowEl){
+    const id = rowEl.dataset.id;
+    const rec = data.find(x => x.id === id);
+    if (!rec) return;
+    rowEl.querySelectorAll('input[data-f]').forEach(inp => {
+      rec[inp.dataset.f] = Math.max(0, Math.round(+inp.value || 0));
+    });
+    const ta = rowEl.querySelector('textarea[data-f]');
+    if (ta) rec[ta.dataset.f] = ta.value;
+    save();
+    rowEl.classList.add('saved');
+    renderStats(); renderTable();
+    // 진행률 갱신 (목록은 다시 그리지 않아 포커스 유지)
+    const fc = $('quick-filter-camp').value;
+    const tot = data.filter(x => !fc || x.camp === fc).length;
+    const dn = data.filter(x => (!fc || x.camp === fc) && !isEmpty(x)).length;
+    $('quick-progress').textContent = tot ? `입력 완료 ${dn} / ${tot}` : '';
+    // 다음 행의 첫 입력칸으로 자동 이동
+    const next = rowEl.nextElementSibling;
+    if (next && next.classList.contains('qrow')) {
+      const firstInput = next.querySelector('input[data-f]');
+      if (firstInput) { firstInput.focus(); firstInput.select(); }
+    }
+  }
+
+  document.querySelectorAll('.q-save').forEach(b => {
+    b.onclick = () => saveRow(b.closest('.qrow'));
+  });
+  // Enter로 저장하고 다음으로
+  document.querySelectorAll('.qrow input[data-f]').forEach(inp => {
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); saveRow(e.target.closest('.qrow')); }
+    });
+    inp.addEventListener('focus', () => inp.select());
+  });
+  document.querySelectorAll('.q-comments-toggle').forEach(b => {
+    b.onclick = () => {
+      const panel = $('qc-' + b.dataset.id);
+      if (panel) panel.style.display = (panel.style.display === 'none') ? 'block' : 'none';
+    };
+  });
+}
+
+// (인스타그램 좋아요·댓글 자동 새로고침 기능은 제외했습니다 — 좋아요·댓글·공유·댓글내용은 ③ 빠른 지표 입력에서 수동으로 입력합니다)
+
+function escapeHtml(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+// URL에 프로토콜이 없으면 https:// 를 붙여 상대경로로 오인되는 문제 방지
+function fixUrl(u){
+  const s = String(u || '').trim();
+  if (!s) return '';
+  if (/^https?:\/\//i.test(s)) return s;
+  return 'https://' + s.replace(/^\/+/, '');
+}
+
+// ---- 브랜드 쿼리 SOV (리스닝마인드 MCP로 조회한 스냅샷) ----
+// 이 데이터는 정적 스냅샷입니다 — 대시보드(브라우저)에서 리스닝마인드 API를 직접 호출할 수는 없고
+// (MCP는 Claude 세션 안에서만 동작), Claude에게 "SOV 갱신해줘"라고 요청하면 다시 조회해서
+// 아래 SOV_DATA 값을 새로 채워넣는 방식으로 갱신합니다. 방법론: 브랜드당 연관키워드 상위 20개의
+// 네이버+구글 월평균 검색량 합계로 점유율을 계산 (기존 엑셀 SOV 산출 방식과 동일).
+// 브랜드별 쿼리 SOV 데이터 저장소. 아직 리스닝마인드로 조회하지 않은 브랜드는 이 객체에 항목이 없고,
+// 그런 브랜드를 선택하면 "데이터 없음" 안내가 뜸. 새 브랜드를 준비하려면 Claude에게
+// "[브랜드명] SOV도 준비해줘"라고 요청하면 경쟁사 키워드를 조사해서 이 객체에 항목을 추가함.
+// basis: 그달 SOV 계산에 포함된 경쟁사 수 (추적 경쟁사가 늘면 분모가 커져서 SOV%가 자연히 낮아질 수 있음 —
+// 그런 구간은 renderSovChart에서 점선으로 구분 표시).
+const SOV_BY_BRAND = {
+  '퓨리나': {
+    ownBrand: '퓨리나',
+    updated: '2026-08-27',
+    current: [
+      { brand: '로얄캐닌', volume: 144096 },
+      { brand: '힐스', volume: 48504 },
+      { brand: '하림펫푸드', volume: 47045 },
+      { brand: '퓨리나', volume: 34551 },
+      { brand: '뉴트리플랜', volume: 8348 },
+      { brand: '내추럴발란스', volume: 6769 },
+    ],
+    // 기존 엑셀 "주요 브랜드별 쿼리 SOV" 산출 자료(1~7월) + 8월 리스닝마인드 실시간 조회분.
+    // 1~5월은 로얄캐닌·힐스만 추적되어 3개사 기준, 6월부터 하림펫푸드·뉴트리플랜·내추럴발란스가
+    // 추가되어 6개사 기준으로 바뀜.
+    history: [
+      { month: '2026-01', sov: 0.08389, basis: 3 },
+      { month: '2026-02', sov: 0.08709, basis: 3 },
+      { month: '2026-03', sov: 0.10495, basis: 3 },
+      { month: '2026-04', sov: 0.11043, basis: 3 },
+      { month: '2026-05', sov: 0.10465, basis: 3 },
+      { month: '2026-06', sov: 0.08730, basis: 6 },
+      { month: '2026-07', sov: 0.08911, basis: 6 },
+      { month: '2026-08', sov: 0.11940, basis: 6 },
+    ],
+    // 리스닝마인드 클러스터파인더(cluster_finder, communities)로 "퓨리나" 검색 클러스터를 실제 조회해서
+    // 사람이 읽고 정리한 요약. 원자료 자체는 관련 검색어 묶음이라 해석이 필요함 — 아래는 사람이 해석한 결론.
+    insight: [
+      "카길·네슬레 관련 기업 정보(채용·주식·연혁) 탐색 검색이 클러스터 상당수를 차지 — 실제 구매 의도와 무관한 브랜드 인지도성 검색으로 보임",
+      "'고양이 유산균/변비' 검색과 '포티플로라·팬시피스트' 검색이 같은 클러스터에서 겹쳐 나타남 — 반려묘 장 건강 이슈가 포티플로라 발견의 주요 진입 경로(CEP)로 추정",
+      "'리브클리어'는 별도 클러스터에서 가격·구매처 검색이 두드러짐 — 요로 질환 처방식 특성상 가격 비교 후 구매하는 경향으로 추정",
+      "프로플랜·캣차우 등 일반 사료 라인업은 동물병원 관련 검색과 함께 나타남 — 수의사 추천이 구매 결정에 영향을 주는 것으로 추정",
+    ],
+  },
+  '풀무원다논': {
+    ownBrand: '풀무원다논',
+    updated: '2026-08-27',
+    // 전용 SOV 엑셀이 없어서 리스닝마인드로 "그릭요거트" 연관 검색어를 조사해 경쟁사를 확정함
+    // (검색량 상위 5개사). 매일유업은 "매일 그릭요거트"+"매일 바이오 그릭요거트" 검색량을 합산.
+    current: [
+      { brand: '그릭데이', volume: 22920 },
+      { brand: '매일유업', volume: 17500 },
+      { brand: '서울우유', volume: 8873 },
+      { brand: '풀무원다논', volume: 7900 },
+      { brand: '룩트', volume: 7690 },
+      { brand: '파예', volume: 4316 },
+    ],
+    // 과거 월별 이력 자료가 없어서 지금은 8월 스냅샷 1개뿐 — 매달 갱신 요청하면 트렌드가 쌓임
+    history: [
+      { month: '2026-08', sov: 0.11416, basis: 5 },
+    ],
+  },
+};
+
+// ④ 패널의 브랜드 선택 드롭다운을 전체 브랜드 목록(BRAND_LIST)으로 채움 — 데이터 없는 브랜드도
+// 목록엔 보이되 "(데이터 없음)"으로 표시해서, 앞으로 다른 브랜드가 추가될 걸 미리 대비함.
+function initSovBrandSelect(){
+  const sel = $('sov-brand-select');
+  if (!sel) return;
+  sel.innerHTML = BRAND_LIST.map(b => `<option value="${escapeHtml(b)}">${escapeHtml(b)}${SOV_BY_BRAND[b] ? '' : ' (데이터 없음)'}</option>`).join('');
+  sel.value = SOV_BY_BRAND['퓨리나'] ? '퓨리나' : BRAND_LIST[0];
+  sel.addEventListener('change', renderSovSection);
+}
+function renderSovSection(){ renderSov(); renderSovChart(); renderPerfChart(); renderBuzzChart(); }
+
+// data[] 안의 해당 브랜드 행들을 캠페인 진행월(campMonth)별로 세어 { '2026-07': 2, ... } 형태로 반환
+function campaignCountsByMonth(ownBrand){
+  const counts = {};
+  data.forEach(r => {
+    if (r.brand !== ownBrand) return;
+    const m = (r.campMonth || '').trim();
+    if (!m) return;
+    counts[m] = (counts[m] || 0) + 1;
+  });
+  return counts;
+}
+
+// 같은 조건으로, 월별 캠페인 진행 인플루언서 목록 자체를 반환 (배경 밴드 호버 팝오버용)
+function campaignInfluencersByMonth(ownBrand){
+  const byMonth = {};
+  data.forEach(r => {
+    if (r.brand !== ownBrand) return;
+    const m = (r.campMonth || '').trim();
+    if (!m) return;
+    (byMonth[m] = byMonth[m] || []).push(r);
+  });
+  return byMonth;
+}
+
+// 월별 조회수·PIS 합계 (같은 브랜드, campMonth 있는 행만) — { '2026-07': {view, pis, count}, ... }
+function perfByMonth(ownBrand){
+  const byMonth = {};
+  data.forEach(r => {
+    if (r.brand !== ownBrand) return;
+    const m = (r.campMonth || '').trim();
+    if (!m) return;
+    if (!byMonth[m]) byMonth[m] = { view: 0, pis: 0, count: 0 };
+    byMonth[m].view += (r.view || 0);
+    byMonth[m].pis += pis(r);
+    byMonth[m].count++;
+  });
+  return byMonth;
+}
+
+function renderSovChart(){
+  const svg = $('sov-chart');
+  if (!svg) return;
+  const sel = $('sov-brand-select');
+  const info = sel ? SOV_BY_BRAND[sel.value] : null;
+  if (!info) { svg.innerHTML = ''; return; }
+  const history = info.history;
+  const W = 760, H = 230;
+  const padL = 40, padR = 20, padT = 16, padB = 28;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const counts = campaignCountsByMonth(info.ownBrand);
+  const maxSov = Math.max(...history.map(d => d.sov));
+  const yMax = Math.ceil(maxSov * 100 / 5) * 5 / 100; // 5%p 단위로 올림
+  const n = history.length;
+  const xOf = i => padL + (n === 1 ? plotW / 2 : (plotW * i) / (n - 1));
+  const yOf = v => padT + plotH - (v / yMax) * plotH;
+
+  const parts = [];
+
+  // 캠페인 진행월 배경 밴드 (월 컬럼 폭만큼)
+  const colW = n > 1 ? plotW / (n - 1) : plotW;
+  history.forEach((d, i) => {
+    const c = counts[d.month] || 0;
+    if (!c) return;
+    const bx = xOf(i) - colW / 2;
+    parts.push(`<rect class="sov-camp-band" data-month="${d.month}" x="${bx.toFixed(1)}" y="${padT}" width="${colW.toFixed(1)}" height="${plotH}"></rect>`);
+    parts.push(`<text class="sov-camp-count" x="${xOf(i).toFixed(1)}" y="${(padT + 12).toFixed(1)}" text-anchor="middle">${c}건</text>`);
+  });
+
+  // y축 그리드라인 + 라벨 (0%, 1/2, yMax 3단계)
+  [0, 0.5, 1].forEach(f => {
+    const v = yMax * f;
+    const y = yOf(v);
+    parts.push(`<line class="sov-gridline" x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" />`);
+    parts.push(`<text class="sov-axis-label" x="${padL - 8}" y="${(y + 3).toFixed(1)}" text-anchor="end">${Math.round(v * 100)}%</text>`);
+  });
+
+  // x축 월 라벨
+  history.forEach((d, i) => {
+    parts.push(`<text class="sov-axis-label" x="${xOf(i).toFixed(1)}" y="${H - 8}" text-anchor="middle">${d.month.slice(5)}월</text>`);
+  });
+
+  // 라인: basis(경쟁사 추적 수)가 바뀌는 지점마다 별도 path로 끊어서 점선/실선 다르게 표시.
+  // 경계점은 두 구간에 공유되어 선이 끊기지 않고 이어져 보임 — segBasis를 별도로 추적해서
+  // 이미 소비된 경계점의 basis 값이 다음 구간 판정에 잘못 쓰이지 않게 함.
+  let segStart = 0, segBasis = history[0].basis;
+  for (let i = 1; i <= n; i++){
+    const atEnd = i === n;
+    const changed = !atEnd && history[i].basis !== segBasis;
+    if (atEnd || changed){
+      const segEnd = i - 1;
+      const pts = [];
+      for (let j = segStart; j <= segEnd; j++) pts.push(`${xOf(j).toFixed(1)},${yOf(history[j].sov).toFixed(1)}`);
+      const cls = segBasis === history[history.length-1].basis ? 'sov-line' : 'sov-line sov-line-basis3';
+      parts.push(`<polyline class="${cls}" points="${pts.join(' ')}" />`);
+      if (!atEnd){ segStart = segEnd; segBasis = history[i].basis; }
+    }
+  }
+
+  // 점 + 마지막 점 라벨
+  history.forEach((d, i) => {
+    const x = xOf(i), y = yOf(d.sov);
+    parts.push(`<circle class="sov-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5"><title>${d.month}: SOV ${(d.sov*100).toFixed(1)}% (경쟁사 ${d.basis}개사 기준)${counts[d.month] ? ' · 캠페인 ' + counts[d.month] + '건' : ''}</title></circle>`);
+    if (i === n - 1){
+      parts.push(`<text class="sov-dot-label" x="${x.toFixed(1)}" y="${(y - 12).toFixed(1)}" text-anchor="end">${(d.sov*100).toFixed(1)}%</text>`);
+    }
+  });
+
+  svg.innerHTML = parts.join('');
+
+  // 캠페인 배경 밴드 호버 → 그 달 캠페인 진행한 인플루언서 목록 팝오버
+  const popover = $('sov-camp-popover');
+  const wrap = svg.parentElement;
+  if (popover && wrap) {
+    const infMap = campaignInfluencersByMonth(info.ownBrand);
+    svg.querySelectorAll('.sov-camp-band').forEach(rect => {
+      const month = rect.dataset.month;
+      rect.addEventListener('mouseenter', () => {
+        const list = infMap[month] || [];
+        popover.innerHTML = `<div class="cp-title">${month} · ${escapeHtml(info.ownBrand)} 캠페인 ${list.length}건</div>` +
+          list.map(r => `<div class="cp-row"><span>${escapeHtml(r.name)}</span><span>조회 ${fmt(r.view || 0)} · PIS ${fmt(pis(r))}</span></div>`).join('');
+        popover.style.display = 'block';
+      });
+      rect.addEventListener('mousemove', e => {
+        const wrapRect = wrap.getBoundingClientRect();
+        popover.style.left = Math.max(0, e.clientX - wrapRect.left + 12) + 'px';
+        popover.style.top = (e.clientY - wrapRect.top + 12) + 'px';
+      });
+      rect.addEventListener('mouseleave', () => { popover.style.display = 'none'; });
+    });
+  }
+}
+
+// 월별 조회수·PIS 합계를 SOV 차트와 같은 x축(월)으로 나란히 그림 (막대 2종, 캠페인 없는 달은 빈칸)
+function renderPerfChart(){
+  const svg = $('sov-perf-chart');
+  if (!svg) return;
+  const sel = $('sov-brand-select');
+  const info = sel ? SOV_BY_BRAND[sel.value] : null;
+  const legend = $('sov-perf-legend');
+  if (!info) { svg.innerHTML = ''; if (legend) legend.innerHTML = ''; return; }
+
+  const history = info.history;
+  const perf = perfByMonth(info.ownBrand);
+  if (!Object.keys(perf).length) {
+    svg.innerHTML = `<text class="sov-axis-label" x="380" y="80" text-anchor="middle" style="font-size:12.5px">"${escapeHtml(info.ownBrand)}" 인플루언서 중 캠페인 진행월이 입력된 사람이 아직 없어요. ③ 빠른 지표 입력이나 인플루언서 등록 시 캠페인 진행월을 넣어주세요.</text>`;
+    if (legend) legend.innerHTML = '';
+    return;
+  }
+  const W = 760, H = 160;
+  const padL = 46, padR = 20, padT = 14, padB = 26;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const n = history.length;
+  const xOf = i => padL + (n === 1 ? plotW / 2 : (plotW * i) / (n - 1));
+  const colW = n > 1 ? plotW / (n - 1) : plotW;
+  const maxVal = Math.max(1, ...history.map(d => { const p = perf[d.month]; return p ? Math.max(p.view, p.pis) : 0; }));
+
+  const parts = [];
+  [0, 1].forEach(f => {
+    const v = maxVal * f;
+    const y = padT + plotH - (v / maxVal) * plotH;
+    parts.push(`<line class="sov-gridline" x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" />`);
+    parts.push(`<text class="sov-axis-label" x="${padL - 8}" y="${(y + 3).toFixed(1)}" text-anchor="end">${fmt(Math.round(v))}</text>`);
+  });
+  history.forEach((d, i) => {
+    parts.push(`<text class="sov-axis-label" x="${xOf(i).toFixed(1)}" y="${H - 8}" text-anchor="middle">${d.month.slice(5)}월</text>`);
+    const p = perf[d.month];
+    if (!p) return;
+    const bw = Math.min(22, colW * 0.32), gap = 4;
+    const x1 = xOf(i) - bw - gap / 2, x2 = xOf(i) + gap / 2;
+    const hView = (p.view / maxVal) * plotH, hPis = (p.pis / maxVal) * plotH;
+    const yView = padT + plotH - hView, yPis = padT + plotH - hPis;
+    parts.push(`<rect class="sov-perf-bar sov-perf-view" x="${x1.toFixed(1)}" y="${yView.toFixed(1)}" width="${bw.toFixed(1)}" height="${hView.toFixed(1)}" rx="3"><title>${d.month} 조회수 합계: ${fmt(p.view)} (${p.count}건)</title></rect>`);
+    parts.push(`<rect class="sov-perf-bar sov-perf-pis" x="${x2.toFixed(1)}" y="${yPis.toFixed(1)}" width="${bw.toFixed(1)}" height="${hPis.toFixed(1)}" rx="3"><title>${d.month} PIS 합계: ${fmt(p.pis)} (${p.count}건)</title></rect>`);
+  });
+  svg.innerHTML = parts.join('');
+  if (legend) legend.innerHTML = `<span><i class="lg-swatch" style="background:var(--accent)"></i> 조회수 합계</span><span><i class="lg-swatch" style="background:var(--brand)"></i> PIS 합계</span>`;
+}
+
+// ---- 썸트렌드 버즈 데이터 (CSV 업로드, 로컬 저장) ----
+let BUZZ_DATA = {};
+try { BUZZ_DATA = JSON.parse(localStorage.getItem('buzz_data_v1')) || {}; } catch(e){ BUZZ_DATA = {}; }
+const BUZZ_TABLE = 'buzz_data';
+
+// 클라우드에서 버즈 데이터 전체 불러오기 → { brand: { month: volume } } 형태로 변환
+async function cloudLoadBuzz(){
+  if (!cloudReady || !supa) return null;
+  const { data: rows, error } = await supa.from(BUZZ_TABLE).select('*');
+  if (error) throw error;
+  const map = {};
+  (rows || []).forEach(r => { if (!map[r.brand]) map[r.brand] = {}; map[r.brand][r.month] = r.volume; });
+  return map;
+}
+// 새로 들어온 버즈 행들을 클라우드에 업서트 (브랜드+월 조합 기준으로 덮어씀)
+async function saveBuzzToCloud(rows){
+  if (!cloudReady || !supa || !rows.length) return;
+  try {
+    const payload = rows.map(r => ({ brand: r.brand, month: r.month, volume: r.volume, updated_at: new Date().toISOString() }));
+    const { error } = await supa.from(BUZZ_TABLE).upsert(payload, { onConflict: 'brand,month' });
+    if (error) throw error;
+  } catch(e){ console.error('버즈 데이터 클라우드 저장 실패:', e); showBuzzMsg('⚠ 팀 공유 저장에 실패했어요. 이 브라우저에는 반영됐지만 다른 사람에게는 안 보일 수 있어요.', false); }
+}
+let buzzRealtimeOn = false;
+function subscribeBuzzRealtime(){
+  if (buzzRealtimeOn || !supa) return;
+  buzzRealtimeOn = true;
+  supa.channel('buzz-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: BUZZ_TABLE }, async () => {
+      try {
+        const cloud = await cloudLoadBuzz();
+        if (cloud) { BUZZ_DATA = cloud; try { localStorage.setItem('buzz_data_v1', JSON.stringify(BUZZ_DATA)); } catch(e){} renderBuzzChart(); }
+      } catch(e){}
+    })
+    .subscribe();
+}
+
+// 썸트렌드 실제 내보내기 형식: 상단에 "● 주제어 / ● 분석 기간" 등 메타 정보 몇 줄,
+// 그 아래 일별 표("날짜, 합계, 커뮤니티, 인스타그램, 블로그, 뉴스" 등). 브랜드 컬럼은 없음 —
+// 주제어가 곧 브랜드는 아니라서(예: "고양이사료") 업로드 후 사람이 브랜드를 확인해줘야 함.
+function parseSometrendRows(rows){
+  let topic = '', dateRange = '';
+  let headerIdx = -1, dateCol = -1, totalCol = -1;
+  const scanLimit = Math.min(rows.length, 20);
+  for (let i = 0; i < scanLimit; i++){
+    const row = rows[i] || [];
+    const first = String(row[0] ?? '').trim();
+    if (/^●?\s*주제어$/.test(first)) topic = String(row[1] ?? '').trim();
+    if (/^●?\s*분석\s*기간$/.test(first)) dateRange = String(row[1] ?? '').trim();
+    if (/^날짜$|^date$/i.test(first)){
+      headerIdx = i; dateCol = 0;
+      totalCol = row.findIndex(c => /^합계$|^total$/i.test(String(c ?? '').trim()));
+      break;
+    }
+  }
+  if (headerIdx < 0) return null;
+
+  const monthly = {};
+  for (let i = headerIdx + 1; i < rows.length; i++){
+    const row = rows[i];
+    if (!row || row.every(c => c === '' || c == null)) continue;
+    const dateStr = String(row[dateCol] ?? '').trim();
+    const m = dateStr.match(/(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})/);
+    if (!m) continue;
+    const month = `${m[1]}-${m[2].padStart(2, '0')}`;
+    let val;
+    if (totalCol >= 0) val = toNum(row[totalCol]);
+    else val = row.reduce((s, c, ci) => ci === dateCol ? s : s + (typeof c === 'number' ? c : (Number(c) || 0)), 0);
+    monthly[month] = (monthly[month] || 0) + val;
+  }
+  if (!Object.keys(monthly).length) return null;
+  return { topic, dateRange, monthly };
+}
+
+let pendingBuzzParse = null;
+function showBuzzConfirm(parsed){
+  pendingBuzzParse = parsed;
+  const months = Object.keys(parsed.monthly).sort();
+  $('buzz-pending-info').innerHTML = `주제어 <b>"${escapeHtml(parsed.topic || '(알 수 없음)')}"</b> · 분석기간 ${escapeHtml(parsed.dateRange || '-')} · 월별 합산 ${months.length}개월(${months.map(m => m.slice(5) + '월').join(', ')})`;
+  const sel = $('buzz-pending-brand');
+  sel.innerHTML = '<option value="">선택</option>' + BRAND_LIST.map(b => `<option value="${escapeHtml(b)}">${escapeHtml(b)}</option>`).join('');
+  const guess = BRAND_LIST.find(b => parsed.topic && (parsed.topic.includes(b) || b.includes(parsed.topic)));
+  if (guess) sel.value = guess;
+  $('buzz-pending').style.display = 'block';
+  $('buzz-upload-msg').style.display = 'none';
+}
+$('buzz-pending-cancel').onclick = () => {
+  pendingBuzzParse = null;
+  $('buzz-pending').style.display = 'none';
+};
+$('buzz-pending-confirm').onclick = () => {
+  const brand = $('buzz-pending-brand').value;
+  if (!brand) { alert('브랜드를 선택해주세요.'); return; }
+  if (!pendingBuzzParse) return;
+  const touched = [];
+  if (!BUZZ_DATA[brand]) BUZZ_DATA[brand] = {};
+  Object.entries(pendingBuzzParse.monthly).forEach(([month, volume]) => {
+    BUZZ_DATA[brand][month] = volume;
+    touched.push({ brand, month, volume });
+  });
+  try { localStorage.setItem('buzz_data_v1', JSON.stringify(BUZZ_DATA)); } catch(e){}
+  $('buzz-pending').style.display = 'none';
+  pendingBuzzParse = null;
+  if (cloudReady && supa){
+    saveBuzzToCloud(touched).then(() => showBuzzMsg(`"${brand}" 브랜드로 ${touched.length}개월치 버즈 데이터를 팀 전체와 공유 저장했습니다.`, true));
+  } else {
+    showBuzzMsg(`"${brand}" 브랜드로 ${touched.length}개월치 버즈 데이터를 반영했습니다. (이 브라우저에만 저장됨)`, true);
+  }
+  renderBuzzChart();
+};
+function showBuzzMsg(text, ok){
+  const el = $('buzz-upload-msg');
+  if (!el) return;
+  el.textContent = text;
+  el.className = 'upload-msg ' + (ok ? 'ok' : 'err');
+  el.style.display = 'block';
+}
+function handleBuzzFile(file){
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, blankrows: false, defval: '' });
+      const parsed = parseSometrendRows(rows);
+      if (!parsed) { showBuzzMsg('썸트렌드 일별 표("날짜"로 시작하는 헤더 행)를 찾지 못했습니다. "언급량" 탭에서 내려받은 원본 그대로 업로드해주세요.', false); return; }
+      showBuzzConfirm(parsed);
+    } catch(err){
+      showBuzzMsg('파일을 읽지 못했습니다. .xlsx 또는 .csv 형식인지 확인해주세요.', false);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+(function(){
+  const dz = $('buzz-dropzone'), fi = $('buzz-file-input');
+  if (!dz || !fi) return;
+  dz.onclick = () => fi.click();
+  fi.onchange = () => { handleBuzzFile(fi.files[0]); fi.value = ''; };
+  ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drag'); }));
+  dz.addEventListener('drop', e => handleBuzzFile(e.dataTransfer.files[0]));
+})();
+
+// 썸트렌드 버즈량을 SOV 차트와 같은 x축(월)으로 그림 — 업로드된 데이터 없으면 안내만 표시
+function renderBuzzChart(){
+  const svg = $('sov-buzz-chart');
+  if (!svg) return;
+  const sel = $('sov-brand-select');
+  const info = sel ? SOV_BY_BRAND[sel.value] : null;
+  const legend = $('sov-buzz-legend');
+  if (!info) { svg.innerHTML = ''; if (legend) legend.innerHTML = ''; return; }
+
+  const brandBuzz = BUZZ_DATA[info.ownBrand];
+  if (!brandBuzz || !Object.keys(brandBuzz).length) {
+    svg.innerHTML = `<text class="sov-axis-label" x="380" y="72" text-anchor="middle" style="font-size:12.5px">"${escapeHtml(info.ownBrand)}"의 썸트렌드 버즈 데이터가 아직 없어요. 위에서 CSV를 업로드해주세요.</text>`;
+    if (legend) legend.innerHTML = '';
+    return;
+  }
+
+  const history = info.history;
+  const W = 760, H = 140;
+  const padL = 46, padR = 20, padT = 14, padB = 26;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const n = history.length;
+  const xOf = i => padL + (n === 1 ? plotW / 2 : (plotW * i) / (n - 1));
+  const colW = n > 1 ? plotW / (n - 1) : plotW;
+  const maxVal = Math.max(1, ...history.map(d => brandBuzz[d.month] || 0));
+
+  const parts = [];
+  [0, 1].forEach(f => {
+    const v = maxVal * f;
+    const y = padT + plotH - (v / maxVal) * plotH;
+    parts.push(`<line class="sov-gridline" x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" />`);
+    parts.push(`<text class="sov-axis-label" x="${padL - 8}" y="${(y + 3).toFixed(1)}" text-anchor="end">${fmt(Math.round(v))}</text>`);
+  });
+  history.forEach((d, i) => {
+    parts.push(`<text class="sov-axis-label" x="${xOf(i).toFixed(1)}" y="${H - 8}" text-anchor="middle">${d.month.slice(5)}월</text>`);
+    const v = brandBuzz[d.month];
+    if (v == null) return;
+    const bw = Math.min(28, colW * 0.45);
+    const h = (v / maxVal) * plotH, y = padT + plotH - h, x = xOf(i) - bw / 2;
+    parts.push(`<rect class="sov-perf-bar sov-buzz-bar" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="3"><title>${d.month} 버즈량: ${fmt(v)}</title></rect>`);
+  });
+  svg.innerHTML = parts.join('');
+  if (legend) legend.innerHTML = `<span><i class="lg-swatch" style="background:var(--mint)"></i> 썸트렌드 버즈량</span>`;
+}
+
+function renderSov(){
+  const listEl = $('sov-list'), emptyEl = $('sov-empty'), bodyEl = $('sov-body');
+  const sel = $('sov-brand-select');
+  if (!listEl || !sel) return;
+  const brand = sel.value;
+  const info = SOV_BY_BRAND[brand];
+
+  if (!info) {
+    if (bodyEl) bodyEl.style.display = 'none';
+    if (emptyEl) {
+      emptyEl.style.display = 'block';
+      emptyEl.innerHTML = `<div class="em-title">"${escapeHtml(brand)}" 브랜드는 아직 쿼리 SOV 데이터가 없어요</div>Claude에게 "${escapeHtml(brand)} SOV도 준비해줘"라고 요청하면 경쟁사 키워드를 조사해서 추가해드릴 수 있어요.`;
+    }
+    $('sov-updated').textContent = '마지막 갱신: -';
+    $('sov-grand').textContent = '-';
+    return;
+  }
+  if (emptyEl) emptyEl.style.display = 'none';
+  if (bodyEl) bodyEl.style.display = '';
+
+  const grand = info.current.reduce((s, r) => s + r.volume, 0);
+  const rows = [...info.current].sort((a, b) => b.volume - a.volume);
+  $('sov-updated').textContent = `마지막 갱신: ${info.updated}`;
+  $('sov-grand').textContent = fmt(grand) + '회/월';
+  listEl.innerHTML = rows.map(r => {
+    const pct = grand ? (r.volume / grand * 100) : 0;
+    const isOwn = r.brand === info.ownBrand;
+    return `<div class="sov-row${isOwn ? ' sov-own' : ''}">
+      <div class="sov-name">${escapeHtml(r.brand)}${isOwn ? ' ★' : ''}</div>
+      <div class="sov-track"><div class="sov-fill" style="width:${pct.toFixed(2)}%"></div></div>
+      <div class="sov-nums"><div class="sov-pct">${pct.toFixed(1)}%</div><div class="sov-vol">${fmt(r.volume)}회/월</div></div>
+    </div>`;
+  }).join('');
+
+  const titleEl = $('sov-trend-title');
+  if (titleEl) titleEl.innerHTML = `<span class="dot" style="background:var(--brand)"></span>${escapeHtml(info.ownBrand)} SOV 추이 × 캠페인 진행월`;
+  const legendEl = $('sov-legend');
+  if (legendEl) {
+    const mixedBasis = info.history.some(h => h.basis !== info.history[info.history.length - 1].basis);
+    legendEl.innerHTML = `
+      <span><i class="lg-swatch"></i> ${escapeHtml(info.ownBrand)} SOV</span>
+      ${mixedBasis ? `<span><i class="lg-swatch dash"></i> 참고용 (경쟁사 추적 수가 다른 구간)</span>` : ''}
+      <span><i class="lg-band"></i> ${escapeHtml(info.ownBrand)} 캠페인 진행월</span>
+    `;
+  }
+
+  const insightEl = $('sov-insight');
+  if (insightEl) {
+    if (info.insight && info.insight.length) {
+      insightEl.style.display = 'block';
+      insightEl.innerHTML = `<h3>💡 ${escapeHtml(info.ownBrand)} 소비자 인식 인사이트 (리스닝마인드 클러스터파인더 기반)</h3>
+        <ul>${info.insight.map(t => `<li>${escapeHtml(t)}</li>`).join('')}</ul>`;
+    } else {
+      insightEl.style.display = 'none';
+      insightEl.innerHTML = '';
+    }
+  }
+}
+
+function renderAll(){ renderStats(); renderTable(); renderQuick(); renderSovSection(); }
+
+$('add-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const name = $('f-name').value.trim();
+  if (!name) { $('f-name').focus(); return; }
+  data.push({
+    id: uid(), name, handle: $('f-handle').value.trim().replace(/^@/, ''),
+    brand: $('f-brand').value, camp: $('f-camp').value, sector: $('f-sector').value, plat: $('f-plat').value,
+    fol: +$('f-fol').value || 0, url: $('f-url').value.trim(),
+    view: +$('f-view').value || 0, like: +$('f-like').value || 0, com: +$('f-com').value || 0,
+    share: +$('f-share').value || 0, commentsText: '', lastChecked: null,
+    campMonth: $('f-campmonth').value || '',
+    contact: $('f-contact').value, contactMemo: $('f-contactmemo').value.trim(),
+    quote: +$('f-quote').value || 0, cost: +$('f-cost').value || 0,
+  });
+  save();
+  ['f-name','f-handle','f-fol','f-url','f-view','f-like','f-com','f-share','f-campmonth','f-contactmemo','f-quote','f-cost'].forEach(id => $(id).value = '');
+  $('f-contact').value = ''; $('f-brand').value = ''; $('f-sector').value = '';
+  fillCampaigns('');  // 캠페인 초기화
+  $('f-contactmemo-hint').textContent = '';
+  $('f-name').focus();
+  renderAll();
+});
+
+// 브랜드 드롭다운 채우기
+(function(){
+  const bsel = $('f-brand');
+  BRAND_LIST.forEach(b => { const o = document.createElement('option'); o.value = b; o.textContent = b; bsel.appendChild(o); });
+})();
+
+// 브랜드 선택 → 캠페인 2차 드롭다운 채우기 (연동)
+function fillCampaigns(brand){
+  const csel = $('f-camp');
+  csel.innerHTML = '';
+  const camps = BRANDS[brand] || [];
+  if (!brand){
+    csel.innerHTML = '<option value="">브랜드 먼저 선택</option>';
+  } else if (camps.length === 0){
+    // 하위 캠페인이 아직 없는 브랜드 → 직접 입력 안내(빈 값 허용)
+    csel.innerHTML = '<option value="">캠페인 없음 (선택 안 함)</option>';
+  } else {
+    csel.innerHTML = '<option value="">선택</option>' + camps.map(c => `<option>${c}</option>`).join('');
+  }
+}
+$('f-brand').addEventListener('change', () => fillCampaigns($('f-brand').value));
+
+// DM·이메일 선택 시 메모 입력창으로 자동 포커스 + 안내
+$('f-contact').addEventListener('change', () => {
+  const v = $('f-contact').value;
+  const hint = $('f-contactmemo-hint');
+  const memo = $('f-contactmemo');
+  if (v === 'DM') {
+    hint.textContent = '— DM 보낸 계정·내용·회신 여부를 적어두세요';
+    memo.focus();
+  } else if (v === '이메일') {
+    hint.textContent = '— 이메일 주소·제목·회신 여부를 적어두세요';
+    memo.focus();
+  } else {
+    hint.textContent = '';
+  }
+});
+
+$('clear-all').onclick = () => {
+  if (data.length && confirm('등록된 모든 인플루언서를 삭제할까요? 이 작업은 되돌릴 수 없습니다.')) {
+    const delIds = data.map(r => r.id);
+    data = []; localSave(); renderAll();
+    cloudDelete(delIds);
+  }
+};
+
+$('search').addEventListener('input', renderTable);
+$('sort').addEventListener('change', renderTable);
+$('filter-camp').addEventListener('change', renderTable);
+$('filter-plat').addEventListener('change', renderTable);
+$('filter-tier').addEventListener('change', renderTable);
+$('filter-sector').addEventListener('change', renderTable);
+
+// 브랜드 필터 채우기 + 캠페인 필터 연동
+(function(){
+  const bsel = $('filter-brand');
+  BRAND_LIST.forEach(b => { const o = document.createElement('option'); o.value = b; o.textContent = b; bsel.appendChild(o); });
+  fillCampFilter('');
+})();
+initSovBrandSelect();
+function fillCampFilter(brand){
+  const csel = $('filter-camp');
+  const camps = brand ? (BRANDS[brand] || []) : [...new Set(Object.values(BRANDS).flat())];
+  csel.innerHTML = '<option value="">캠페인 전체</option>' + camps.map(c => `<option>${c}</option>`).join('');
+}
+$('filter-brand').addEventListener('change', () => {
+  fillCampFilter($('filter-brand').value);
+  renderTable();
+});
+$('bulk-trash').onclick = () => {
+  const toast = $('storage-warn');
+  const notify = (msg, bg, fg) => { if(toast){ toast.style.display='block'; toast.style.background=bg; toast.style.color=fg; toast.textContent=msg; setTimeout(()=>{ toast.style.display='none'; }, 2200); } };
+  try {
+    const n = selectedIds.size;
+    if (n === 0) return;
+    if (confirm(`선택한 ${n}명의 인플루언서를 삭제할까요?\n이 작업은 되돌릴 수 없습니다.`)) {
+      const before = data.length;
+      const delIds = [...selectedIds];
+      data = data.filter(r => !selectedIds.has(r.id));
+      selectedIds.clear();
+      localSave(); renderAll();
+      cloudDelete(delIds);
+      notify(`${before - data.length}명을 삭제했어요.`, '#d4f5f0', '#0f766e');
+    }
+  } catch(err) {
+    notify('삭제 중 오류가 발생했어요: ' + (err && err.message ? err.message : err), '#fee2e2', '#991b1b');
+  }
+};
+$('quick-search').addEventListener('input', renderQuick);
+$('quick-filter-camp').addEventListener('change', renderQuick);
+
+// ---- Excel / CSV upload ----
+const PLATFORMS = ['Instagram','YouTube','TikTok','X','네이버 블로그','기타'];
+const toNum = v => { const n = Number(String(v ?? '').replace(/[, ]/g,'')); return isNaN(n) ? 0 : Math.max(0, Math.round(n)); };
+function normPlat(v){
+  const s = String(v ?? '').trim().toLowerCase();
+  if (s.startsWith('insta') || s === 'ig' || s === '인스타그램' || s === '인스타') return 'Instagram';
+  if (s.startsWith('you') || s === 'yt' || s === '유튜브') return 'YouTube';
+  if (s.startsWith('tik') || s === '틱톡') return 'TikTok';
+  if (s === 'x' || s === 'twitter' || s === '트위터' || s === '엑스') return 'X';
+  if (/네이버|naver|블로그|blog/.test(s)) return '네이버 블로그';
+  return PLATFORMS.includes(v) ? v : '기타';
+}
+
+// "2026-07", "2026.7", "2026/07", 엑셀 날짜 일련값 등을 "YYYY-MM" 형식으로 정규화
+function normCampMonth(v){
+  if (v == null || v === '') return '';
+  if (typeof v === 'number') { // 엑셀 날짜 일련값 (1900 기준)
+    const d = new Date(Math.round((v - 25569) * 86400 * 1000));
+    if (!isNaN(d.getTime())) return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}`;
+    return '';
+  }
+  const s = String(v).trim();
+  const m = s.match(/(\d{4})[.\-\/년]\s*(\d{1,2})/);
+  if (m) return `${m[1]}-${m[2].padStart(2,'0')}`;
+  return s;
+}
+
+const CAMPAIGNS = ['프로플랜','ONE','프리스키','팬시피스트','캣차우','자사몰'];
+function normCamp(v){
+  const s = String(v ?? '').trim();
+  if (!s) return '';
+  const hit = CAMPAIGNS.find(c => c.toLowerCase() === s.toLowerCase());
+  return hit || s; // keep as-is if not in list (still recorded)
+}
+
+// map a header name to a field
+function detectField(h){
+  const s = String(h).trim().toLowerCase();
+  if (/id|핸들|handle|아이디|계정/.test(s)) return 'handle';
+  if (/인플루언서명|이름|활동명|name|닉네임/.test(s)) return 'name';
+  if (/브랜드|brand|광고주/.test(s)) return 'brand';
+  if (/분야|sector|카테고리|category|장르/.test(s)) return 'sector';
+  if (/진행월|캠페인\s*월|집행월|게시월/.test(s)) return 'campMonth'; // "캠페인" 패턴보다 먼저 검사 (예: "캠페인 진행월"이 캠페인명으로 잘못 인식되는 것 방지)
+  if (/캠페인|campaign|캠페|제품/.test(s)) return 'camp';
+  if (/플랫폼|platform|채널|channel/.test(s)) return 'plat';
+  if (/팔로워|follow|구독/.test(s)) return 'fol';
+  if (/컨텍\s*메모|컨택\s*메모|contact\s*memo|메모|note|비고/.test(s)) return 'contactMemo';
+  if (/컨텍|컨택|contact|경로|방식/.test(s)) return 'contact';
+  if (/견적|청구|quote|단가/.test(s)) return 'quote';
+  if (/실비|실집행|지급|원가|cost/.test(s)) return 'cost';
+  if (/url|링크|link|주소|협업/.test(s)) return 'url';
+  if (/조회|view/.test(s)) return 'view';
+  if (/좋아요|like|하트/.test(s)) return 'like';
+  if (/댓글|comment/.test(s)) return 'com';
+  if (/공유|share|리트윗|retweet/.test(s)) return 'share';
+  return null;
+}
+const CONTACTS = ['MAX','디엔에이디','DM','이메일'];
+function normContact(v){
+  const s = String(v ?? '').trim();
+  if (!s) return '';
+  const low = s.toLowerCase();
+  if (low === 'max') return 'MAX';
+  if (low === 'dm' || low === '디엠') return 'DM';
+  if (/메일|email|이메일/.test(low)) return '이메일';
+  if (/디엔에이디|dnad|디엔에이|dna/.test(low)) return '디엔에이디';
+  return CONTACTS.includes(s) ? s : s; // 목록 밖이면 원문 유지
+}
+
+function importRows(rows){
+  if (!rows.length) { showMsg('빈 파일이거나 데이터를 찾을 수 없습니다.', false); return; }
+
+  // 다른 용도의 파일(예: 썸트렌드 리포트)이 잘못 올라온 경우 조기에 걸러서 안내
+  // ("사람들의 생각이 궁금할 때" / "썸트렌드" / "some.co.kr" / "● 주제어" 같은 특징적인 배너 줄로 감지)
+  const scanText = rows.slice(0, 10).map(r => (r || []).join(' ')).join(' ');
+  if (/썸트렌드|some\.co\.kr|●\s*주제어|●\s*분석\s*기간|●\s*검색\s*키워드/.test(scanText)) {
+    showMsg('이 파일은 썸트렌드 리포트로 보여요. 인플루언서 등록용이 아니라, 아래 ⑤ "썸트렌드 버즈 데이터 업로드" 영역에 올려주세요.', false);
+    return;
+  }
+
+  // 진짜 헤더 줄 찾기: 앞쪽 여러 줄을 훑어 '이름/핸들'을 포함하고 감지 칸이 가장 많은 줄을 헤더로 선택
+  // (양식 맨 위 안내 배너 줄에 '캠페인' 같은 단어가 있어 오인되는 문제 방지)
+  let headerIdx = -1, bestScore = 0, bestMap = null;
+  const scanLimit = Math.min(rows.length, 8);
+  for (let i = 0; i < scanLimit; i++){
+    const m = rows[i].map(detectField);
+    const score = m.filter(Boolean).length;
+    const hasNameOrHandle = m.includes('name') || m.includes('handle');
+    // 이름/핸들이 있고, 최소 3개 이상 칸이 감지되며, 지금까지 중 가장 강한 줄
+    if (hasNameOrHandle && score >= 3 && score > bestScore){
+      bestScore = score; headerIdx = i; bestMap = m;
+    }
+  }
+
+  // 헤더를 확실히 못 찾으면 절대로 임의 순서로 밀어넣지 않고 거부함 — 예전엔 여기서 고정 순서로
+  // 추측해서 넣었는데, 전혀 다른 형식의 파일(예: 썸트렌드 랭킹표)이 올라왔을 때 수백 건의 가짜
+  // "인플루언서"가 생성되는 사고로 이어진 적이 있어서 안전하게 막아둠.
+  if (headerIdx < 0) {
+    showMsg('인플루언서명·ID/핸들 컬럼을 찾지 못했습니다. "엑셀 양식 내려받기"로 받은 양식을 사용하시거나, 첫 줄에 "인플루언서명" 같은 헤더를 넣어주세요.', false);
+    return;
+  }
+  const map = bestMap, start = headerIdx + 1;   // 찾은 헤더 다음 줄부터 데이터
+
+  let added = 0, updated = 0, skipped = 0;
+  for (let i = start; i < rows.length; i++){
+    const row = rows[i];
+    if (!row || row.every(c => c === '' || c == null)) continue;
+    const rec = { id: uid(), name:'', handle:'', brand:'', camp:'', sector:'', plat:'기타', fol:0, url:'', view:0, like:0, com:0, share:0, commentsText:'', lastChecked:null, campMonth:'', contact:'', contactMemo:'', quote:0, cost:0 };
+    const touched = new Set(); // 이번 줄에서 실제로 값이 들어온 칸만 기록 (재업로드 시 빠진 칸까지 덮어쓰지 않기 위함)
+    map.forEach((field, ci) => {
+      if (!field) return;
+      touched.add(field);
+      const val = row[ci];
+      if (field === 'name') rec.name = String(val ?? '').trim();
+      else if (field === 'handle') rec.handle = String(val ?? '').trim().replace(/^@/, '');
+      else if (field === 'camp') rec.camp = normCamp(val);
+      else if (field === 'brand') rec.brand = String(val ?? '').trim();
+      else if (field === 'sector') rec.sector = String(val ?? '').trim();
+      else if (field === 'plat') rec.plat = normPlat(val);
+      else if (field === 'url') rec.url = String(val ?? '').trim();
+      else if (field === 'contact') rec.contact = normContact(val);
+      else if (field === 'contactMemo') rec.contactMemo = String(val ?? '').trim();
+      else if (field === 'campMonth') rec.campMonth = normCampMonth(val);
+      else rec[field] = toNum(val);
+    });
+    if (!rec.name && rec.handle) rec.name = rec.handle;
+    if (!rec.name) { skipped++; continue; }
+
+    // 같은 "핸들(또는 이름) + 캠페인" 조합이 이미 있으면 새로 추가하지 않고 그 행을 최신 값으로 업데이트
+    // (엑셀을 다시 받아 수치를 갱신한 뒤 재업로드하는 흐름을 지원 — id·댓글내용·마지막 자동확인 시각은 보존)
+    const existing = data.find(r => {
+      if ((r.camp || '') !== (rec.camp || '')) return false;
+      return rec.handle
+        ? (r.handle || '').toLowerCase() === rec.handle.toLowerCase()
+        : (r.name || '').toLowerCase() === rec.name.toLowerCase();
+    });
+    if (existing) {
+      touched.forEach(f => { if (f !== 'name') existing[f] = rec[f]; });
+      existing.name = rec.name;
+      updated++;
+    } else {
+      data.push(rec); added++;
+    }
+  }
+  save(); renderAll();
+  let m = `${fmt(added)}명 신규 등록`;
+  if (updated) m += ` · ${fmt(updated)}명 업데이트`;
+  m += '.';
+  if (skipped) m += ` 이름이 없는 ${skipped}줄은 건너뛰었습니다.`;
+  showMsg(m, true);
+}
+
+function showMsg(text, ok){
+  const el = $('upload-msg');
+  el.textContent = text;
+  el.className = 'upload-msg ' + (ok ? 'ok' : 'err');
+  el.style.display = 'block';
+}
+
+function handleFile(file){
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, blankrows: false, defval: '' });
+      importRows(rows);
+    } catch(err){
+      showMsg('파일을 읽지 못했습니다. .xlsx 또는 .csv 형식인지 확인해주세요.', false);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+const dz = $('dropzone'), fi = $('file-input');
+dz.onclick = () => fi.click();
+fi.onchange = () => { handleFile(fi.files[0]); fi.value = ''; };
+['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('drag'); }));
+['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('drag'); }));
+dz.addEventListener('drop', e => handleFile(e.dataTransfer.files[0]));
+
+// ===== 초기화: 클라우드에서 불러오기 =====
+async function init(){
+  renderAll(); // 빈 상태 먼저 렌더 (로딩 표시)
+  if (cloudReady && supa){
+    try {
+      let rows = await cloudLoad();
+      // 팀 공유 DB가 비어있어도 샘플로 자동 채우지 않음 — 예전에 이 로직이 브라우저(origin)마다
+      // 따로 판단해서, 다른 origin(예: 로컬 파일 vs 배포 링크)에서 열 때마다 "처음"으로 오인해
+      // 실제 운영 데이터에 가짜 샘플이 반복해서 섞여 들어가는 사고가 있었음.
+      data = rows;
+      localSave();
+      try {
+        const cloudBuzz = await cloudLoadBuzz();
+        if (cloudBuzz) { BUZZ_DATA = cloudBuzz; try { localStorage.setItem('buzz_data_v1', JSON.stringify(BUZZ_DATA)); } catch(e){} }
+      } catch(e){ console.error('버즈 데이터 클라우드 불러오기 실패:', e); }
+      renderAll();
+      subscribeRealtime();
+      subscribeBuzzRealtime();
+    } catch(e){
+      // Supabase 에러 객체에서 실제 원인을 뽑아 사람이 읽을 수 있게 표시
+      const detail = (e && (e.message || e.error_description || e.hint || e.details || e.code))
+        ? [e.message, e.details, e.hint, e.code && ('code: ' + e.code)].filter(Boolean).join(' / ')
+        : (typeof e === 'string' ? e : JSON.stringify(e));
+      console.error('클라우드 불러오기 실패:', detail, e);
+      // 실패 시 로컬 백업으로 폴백
+      data = localLoad();
+      if (data.length === 0) data = SEED.slice();
+      data.forEach(r => { if (!r.id) r.id = uid(); });
+      renderAll();
+      const w = $('storage-warn');
+      if (w){ w.style.display='block'; w.style.background='#fee2e2'; w.style.color='#991b1b';
+        w.textContent='⚠ 클라우드 연결 실패: ' + detail + '  — (지금은 이 브라우저 임시 데이터로 표시 중)'; }
+    }
+  } else {
+    // 클라우드 미설정 → 로컬만
+    data = localLoad();
+    if (data.length === 0) data = SEED.slice();
+    data.forEach(r => { if (!r.id) r.id = uid(); });
+    renderAll();
+  }
+}
+
+// ===== 실시간 동기화: 다른 팀원이 바꾸면 내 화면도 갱신 =====
+let realtimeOn = false;
+function subscribeRealtime(){
+  if (realtimeOn || !supa) return;
+  realtimeOn = true;
+  supa.channel('influencers-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: TABLE }, async () => {
+      try { data = await cloudLoad(); localSave(); renderAll(); } catch(e){}
+    })
+    .subscribe();
+}
+
+init();
+
+// 엑셀 양식 다운로드 링크: 필터·드롭다운·티어 자동계산·색상이 포함된 .xlsx를 통째로 내장
+const XLSX_TEMPLATE_B64 = "UEsDBBQAAAAIAI6VHF1Gx01IlQAAAM0AAAAQAAAAZG9jUHJvcHMvYXBwLnhtbE3PTQvCMAwG4L9SdreZih6kDkQ9ip68zy51hbYpbYT67+0EP255ecgboi6JIia2mEXxLuRtMzLHDUDWI/o+y8qhiqHke64x3YGMsRoPpB8eA8OibdeAhTEMOMzit7Dp1C5GZ3XPlkJ3sjpRJsPiWDQ6sScfq9wcChDneiU+ixNLOZcrBf+LU8sVU57mym/8ZAW/B7oXUEsDBBQAAAAIAI6VHF1RPOyX7wAAACsCAAARAAAAZG9jUHJvcHMvY29yZS54bWzNksFOwzAMhl8F5d667aapRF0vIE4gITEJxC1yvC2iaaLEqN3b04atE4IH4Bj7z+fPkhv0El2g5+A8BTYUb0bb9VGi34ojs5cAEY9kVcynRD819y5YxdMzHMAr/FAHgqooNmCJlVasYAZmfiGKttEoMZBiF854jQvef4YuwTQCdWSp5whlXoJo54n+NHYNXAEzjCnY+F0gvRBT9U9s6oA4J8doltQwDPmwSrlphxLenh5f0rqZ6SOrHmn6FY3kk6etuEx+Xd3d7x5EWxXVJivqrKp3xa1cr2VVv8+uP/yuwtZpszf/2Pgi2Dbw6y7aL1BLAwQUAAAACACOlRxdmVycIxAGAACcJwAAEwAAAHhsL3RoZW1lL3RoZW1lMS54bWztWltz2jgUfu+v0Hhn9m0LxjaBtrQTc2l227SZhO1OH4URWI1seWSRhH+/RzYQy5YN7ZJNups8BCzp+85FR+foOHnz7i5i6IaIlPJ4YNkv29a7ty/e4FcyJBFBMBmnr/DACqVMXrVaaQDDOH3JExLD3IKLCEt4FMvWXOBbGi8j1uq0291WhGlsoRhHZGB9XixoQNBUUVpvXyC05R8z+BXLVI1lowETV0EmuYi08vlsxfza3j5lz+k6HTKBbjAbWCB/zm+n5E5aiOFUwsTAamc/VmvH0dJIgILJfZQFukn2o9MVCDINOzqdWM52fPbE7Z+Mytp0NG0a4OPxeDi2y9KLcBwE4FG7nsKd9Gy/pEEJtKNp0GTY9tqukaaqjVNP0/d93+ubaJwKjVtP02t33dOOicat0HgNvvFPh8Ouicar0HTraSYn/a5rpOkWaEJG4+t6EhW15UDTIABYcHbWzNIDll4p+nWUGtkdu91BXPBY7jmJEf7GxQTWadIZljRGcp2QBQ4AN8TRTFB8r0G2iuDCktJckNbPKbVQGgiayIH1R4Ihxdyv/fWXu8mkM3qdfTrOa5R/aasBp+27m8+T/HPo5J+nk9dNQs5wvCwJ8fsjW2GHJ247E3I6HGdCfM/29pGlJTLP7/kK6048Zx9WlrBdz8/knoxyI7vd9lh99k9HbiPXqcCzIteURiRFn8gtuuQROLVJDTITPwidhphqUBwCpAkxlqGG+LTGrBHgE323vgjI342I96tvmj1XoVhJ2oT4EEYa4pxz5nPRbPsHpUbR9lW83KOXWBUBlxjfNKo1LMXWeJXA8a2cPB0TEs2UCwZBhpckJhKpOX5NSBP+K6Xa/pzTQPCULyT6SpGPabMjp3QmzegzGsFGrxt1h2jSPHr+BfmcNQockRsdAmcbs0YhhGm78B6vJI6arcIRK0I+Yhk2GnK1FoG2camEYFoSxtF4TtK0EfxZrDWTPmDI7M2Rdc7WkQ4Rkl43Qj5izouQEb8ehjhKmu2icVgE/Z5ew0nB6ILLZv24fobVM2wsjvdH1BdK5A8mpz/pMjQHo5pZCb2EVmqfqoc0PqgeMgoF8bkePuV6eAo3lsa8UK6CewH/0do3wqv4gsA5fy59z6XvufQ9odK3NyN9Z8HTi1veRm5bxPuuMdrXNC4oY1dyzcjHVK+TKdg5n8Ds/Wg+nvHt+tkkhK+aWS0jFpBLgbNBJLj8i8rwKsQJ6GRbJQnLVNNlN4oSnkIbbulT9UqV1+WvuSi4PFvk6a+hdD4sz/k8X+e0zQszQ7dyS+q2lL61JjhK9LHMcE4eyww7ZzySHbZ3oB01+/ZdduQjpTBTl0O4GkK+A226ndw6OJ6YkbkK01KQb8P56cV4GuI52QS5fZhXbefY0dH758FRsKPvPJYdx4jyoiHuoYaYz8NDh3l7X5hnlcZQNBRtbKwkLEa3YLjX8SwU4GRgLaAHg69RAvJSVWAxW8YDK5CifEyMRehw55dcX+PRkuPbpmW1bq8pdxltIlI5wmmYE2eryt5lscFVHc9VW/Kwvmo9tBVOz/5ZrcifDBFOFgsSSGOUF6ZKovMZU77nK0nEVTi/RTO2EpcYvOPmx3FOU7gSdrYPAjK5uzmpemUxZ6by3y0MCSxbiFkS4k1d7dXnm5yueiJ2+pd3wWDy/XDJRw/lO+df9F1Drn723eP6bpM7SEycecURAXRFAiOVHAYWFzLkUO6SkAYTAc2UyUTwAoJkphyAmPoLvfIMuSkVzq0+OX9FLIOGTl7SJRIUirAMBSEXcuPv75Nqd4zX+iyBbYRUMmTVF8pDicE9M3JD2FQl867aJguF2+JUzbsaviZgS8N6bp0tJ//bXtQ9tBc9RvOjmeAes4dzm3q4wkWs/1jWHvky3zlw2zreA17mEyxDpH7BfYqKgBGrYr66r0/5JZw7tHvxgSCb/NbbpPbd4Ax81KtapWQrET9LB3wfkgZjjFv0NF+PFGKtprGtxtoxDHmAWPMMoWY434dFmhoz1YusOY0Kb0HVQOU/29QNaPYNNByRBV4xmbY2o+ROCjzc/u8NsMLEjuHti78BUEsDBBQAAAAIAI6VHF0Eru9+PWgAAE/sAwAYAAAAeGwvd29ya3NoZWV0cy9zaGVldDEueG1stN1rk2W3eabpv1LBjvAhwi0mzoApKca22rYEQC0A3XP4NEFLlMQwyVJTJcuemB8/mbmwuAGs/T7AmjA6ul2sundm1buerE3qUpv14z9//P5f//j7r7769OHfv/3muz/+5LPff/r0h7/9/PM//vr3X3375R9/9PEPX333Wn778ftvv/z0+t3vf/f5H//w/Vdf/ub9g7795nP+8qI///bLr7/77Kc/fv+xX33/0x9//NOnb77+7qtfff/hj3/69tsvv/+Pv//qm49//sln7LPzB/LXv/v9p7cf+PynP/7Dl7/7qnz16X/+4Vffv37v8x8+y2++/var7/749cfvPnz/1W9/8tnfsb8t6uXl7SPeX/K/f/3Vn//Y/PWHt1v+5ePHf337zs9/85PPXj57+9zfffXh38sfvvn69Wfjn334j8dffvr4h/DVbz/9w1fffPOTz/5BfPbhy19/+vrfvvrV60f85LN/+fjp08dv33+Vr7/mT19+ev2x337/8f/56rv3n/+rb756ffHrr+wP769+/VTHS5+04zO9/Ux0rT/P8Qs4fkF/9/as/lc9/LMfnsvbbe1fnw/gH98Hen3g//LlH7/6h4/f/B9f/+bT73/ymf3sw2+++u2Xf/rmU/7453/+qj509fb5fv3xmz++/88Pfz5ey8xnH379pz++/nLqB7/+Cr79+rvj2y//vY7VfoAkPoDXD+DjByjiA0T9ALH6M8j6AXL8gBfiA1T9ADV+ACM+QNcP0KsfYOoHmNVfkq0fYIcPENQHuPoBbvVneAvHci/LH/LD2OPajvqIc202zk1+xDk3W96bnYOzy+Kc+pBzcjZuzjX1IefobHl1ds7OLruTH3IOz8bl6Q85p2fv239+/N59/43/sy8/ffnTH3//8c8fvn9//dtvcP7DY/zht/zrW+Gv317x/rby/sLXH/36u7d36fLp+9f69esn/PTTv/gv6kU7/cVf/BfprJVffBCvP8Kkfvni7duXF/vFh7e/0NK+/cCL1fLtpZIr/RZeP8bx91dy/v5KqZzQx4cen0Io9fYCaeTbJ3/9Ac6Pjzg/lZPv375+//UDf/Thw//74e3TWF0/7OXl/VVavLx9OmbF22u5ff8VK8m0rT+Z/KFK+/rLff+MSunHx0glX47PyNz79/n7x56f0R2fSSjLvvjwkw+Pn1Iazt4/rTLHT/r6C3899fh1Kmnef47Xs48n5fTr2e8f//oTHq9/fwLvr//Ltx99ef+srw+d8S/+6v3Xbu37hS+SffHXf3n8iv7y7edVdYS3R/H0lc0+bfrwPhB//wEnjm9ffzZ2HPF+53HMj378+afXr623L4TPf/36/16/pn74wuL1C0vTX1j8/QuL019YdZbHoxfH18br7ccXnHz/vjRGui/6X8v7z/D3+Gf4+c8+f/vkx5fm21z22Sf5h9kv8/nX2pPP9LPpwU+/Lp98pv82/zW1X8NPPsM/Tn8tT7/en3ymf5p/ppc6Ezt/A7z/Dpavv2WefsZ/XviM8DfBk8/58/nntC/s+JzcffHhf+bw5LP8Yv4lK9j7u5N0XKIb/cJnEu5YsN5qj6dIfcYw/ZpQVr6/Eb0uC39tcfqZJDfm/dfkDPw1/fL/31f8h/Nd6/23p1bHT/X8N9V/n/8U3Vvz+1fy8anPtxfh5NPfZb+6/alf34nqe76xTz9lWni0728ir39DfP1yfPIZ8vQz1L+lSmuev6GV6WeY/J0DvOuLH97cxftPIsA/Najj0PPrm73+Bnz/Owu36pjJHm9A7z/ps3d3/FP8+stP//fvP/7m43e/e/amPv3lyeOX9/osBD9+Wc+f5s8WPtPxGc63v8cb68vzN/f5Z2TWPH1Txx/58+9e/2Pp777/8ttn7+LHh8r3D337T+b/9lPG7evb7MuPP/+39r35eJ16fcVvf/rzf/yrfxI/+eyzv3n9v+9//Re/+/TFT9jL+//5m8+a3w+vfwvgX1xfdLxG2eM3kVCPv01cXltfev5zZf2Hw/5DPjt3evtWvv2Mf/36f378+W/fzunv+Dl+VG+m8ce//fzzP//5zz/6+nxsP/r1x28/f3xZff7sbxDXxzg8QH99xesveXhRuL6Is+E18clidnjNL/GV/IXr//pinr2r4g/8WXz2djn9uq1vuK/vUPxY/PXr4osPP4vv/8DOjimd0u6Lv/nQ/i3U2uMfUl/qPysb4p/U0vWJiONrsX8q+cnTffa6crxOn1/rf/fLn/1Vev96z2//86/fvux/+fojf/1ff/lXWVy/0Lp3RvnDO6OcPKbXf57kxz/2vtS/mRxvHK9/3xZP/1nu7/Fn/JevvvzTp//45uPT98HZL2b9fRB/pv/+y//27K3u3rN49paHP8P/9fFP/+NP//LVszc8efkikIxf3+/k8H4nm/c7ufJ+J2+838l973f4OZ3vd//x8U+fXp/X+zvd/4a+cH5xfXxOXZ6ev77Kusub3fVFWo5vdtfXXN4Qf4lPPN7s9LM3u+lvgvr8z3nfvv/0N8Gv8Gf69cfvPn3560+PB/v2nD+c+vH4Z6LjP9he3hWfveVdn4t6+pZ3fZ1Qz97y5JO3vPcv+Sybtzz5/pYnJ2956oe3PDX7bd6oj23ebV6/qI9/lqX+I/Xf48/8my+//uY/fvTbjx9/8+y9b/arev2PSfUN+Pg70dt/cNWN5Lz9nnv6hvyz6b3vb+XHneLpPwPOPwM72EK+qKef4R/xZ/gfX//r//j4r8/eF9X1K0pf3xbV8LaomrdFtfK2qG68Lap9b4v4KZ1vi5++/tdPH//1eFeEX1O/uD49cf1d5q+ven03G98Wry9yanhXvL5EDi/5JT7weFO0z94U8QfGv/s/n73/tR/09gt6vFFdf6n22fvUk6++Z29T6snb1PuXYFbN25R6f5tSk7cpfb5N/ZN+/6zm+qv/56PYH77cdfPlrle+3PWNL3e97cv9F+SFniyBLJEsiSyZLOUortv0/Tln3Wyq3zfVk03ND5saclMzbGqaTc3KpubGpmbfpuSFniyBLJEsiSyZLMU82fT9OWfTbGreNzWTTe0Pm1pyUztsaptN7cqm9samdt+m5IWeLIEskSyJLJksxT7Z9P05Z9tsat83tZNN3Q+bOnJTN2zqmk3dyqbuxqZu36bkhZ4sgSyRLIksmSzFPdn0/Tln12zq3jd1k03Zyw+jvv1/GiBWrekxK3tpdmUvK8N2r5ot2774P3ta+k5Pp0CnSKdEp0ynUlO/8PHI8/s358bs5X3k128mK7PHyoxemY0rs3ZltrQyu7My27gyeaenU6BTpFOiU6ZTqWlYmR0rs3ZldqzMZivzx8qcXpmPK/N2Zb60Mr+zMt+4Mnmnp1OgU6RTolOmU6lpWJkfK/N2ZX6szGcri8fKgl5ZjCu3/90PW/ovf9id//aH7fuvf35B3+npFOgU6ZTolOlUahpWPv7rB9b+9w/s+C8g2Oy/gWDysbKkV5bjyq14syXyZnfMm+1D71/Qd3o6BTpFOiU6ZTqVmoaVD3FlLbmyw1zZDF2Zeqys6JXVuHILeGxJ8NgdwmP7DO8X9J2eToFOkU6JTplOpaZh5QOsWCtW7CArNjMr9kArRqsVG9mKtW7FluCK3ZErtpGu6Ds9nQKdIp0SnTKdCnsmWMcjz6w1LHYgFpspFnswFqMdi42QxVrJYkuUxe5YFtuIWfSdnk6BTpFOiU6ZToU9M63jkWfWqhY7WIvNXIs9YIvRssVG2mKtbbEl3GJ3dItt5C36Tk+nQKdIp0SnTKfCninX8cgza52LHdDFZtLFHtTFaOtiI3axVrvYEnexO97FNoIXfaenU6BTpFOiU6ZTYc/c63jkmbXyxQ76YjP74g/74rR98dG+eGtffMm++B374hvti77T0ynQKdIp0SnTqfBn9nU88sxb++KHffGZffGHfXHavvhoX7y1L75kX/yOffGN9kXf6ekU6BTplOiU6VT4M/s6HnnmrX3xw774zL74w744bV98tC/e2hdfsi9+x774Rvui7/R0CnSKdEp0ynQq/Jl9HY8889a++GFffGZf/GFfnLYvPtoXb+2LL9kXv2NffKN90Xd6OgU6RTolOmU6Ff7Mvo5HnnlrX/ywLz6zL/6wL07bFx/ti7f2xZfsi9+xL77Rvug7PZ0CnSKdEp0ynQp/Zl/HI8+8tS9+2Bef2Rd/2Ben7YuP9sVb++JL9sXv2BffaF/0nZ5OgU6RTolOmU6FP7Ov45Fn3toXP+yLz+yLP+yL0/bFR/virX3xJfvid+yLb7Qv+k5Pp0CnSKdEp0ynwp/Z1/HIM2/tix/2xWf2xR/2xWn74qN98da++JJ98Tv2xTfaF32np1OgU6RTolOmU+HP7Ot45Jm39sUP++Iz++IP++K0ffHRvnhrX3zJvvgd++Ib7Yu+09Mp0CnSKdEp06nwZ/Z1PPLMW/vih33xmX3xh31x2r74aF+8tS++ZF/8jn3xjfZF3+npFOgU6ZTolOlU+DP7Oh555q198cO++My+xMO+BG1fYrQv0dqXWLIvcce+xEb7ou/0dAp0inRKdMp0KuKZfR2PPIvWvsRhX2JmX+JhX4K2LzHal2jtSyzZl7hjX2KjfdF3ejoFOkU6JTplOhXxzL6OR55Fa1/isC8xsy/xsC9B25cY7Uu09iWW7EvcsS+x0b7oOz2dAp0inRKdMp2KeGZfxyPPorUvcdiXmNmXeNiXoO1LjPYlWvsSa/9L/7f+t/432hd9p6dToFOkU6JTplMRz+zreORZtPYl6v/i+cy+xMO+BG1fYrQv0dqXWLIvcce+xEb7ou/0dAp0inRKdMp0KuKZfR2PPIvWvsRhX2JmX+JhX4K2LzHal2jtSyzZl7hjX2KjfdF3ejoFOkU6JTplOhXxzL6OR55Fa1/isC8xsy/xsC9B25cY7Uu09iWW7EvcsS+x0b7oOz2dAp0inRKdMp2KeGZfxyPPorUvcdiXmNmXeNiXoO1LjPYlWvsSS/Yl7tiX2Ghf9J2eToFOkU6JTplORTyzr+ORZ9HalzjsS8zsSzzsS9D2JUb7Eq19iSX7EnfsS2y0L/pOT6dAp0inRKdMpyKe2dfxyLNo7Usc9iVm9iUe9iVo+xKjfYnWvsSSfYk79iU22hd9p6dToFOkU6JTplMRz+zreORZtPYlDvsSM/uSD/uStH3J0b5ka19yyb7kHfuSG+2LvtPTKdAp0inRKdOpyGf2dTzyLFv7kod9yZl9yYd9Sdq+5GhfsrUvuWRf8o59yY32Rd/p6RToFOmU6JTpVOQz+zoeeZatfcnDvuTMvuTDviRtX3K0L9nal1yyL3nHvuRG+6Lv9HQKdIp0SnTKdCrymX0djzzL1r7kYV9yZl/yYV+Sti852pds7Usu2Ze8Y19yo33Rd3o6BTpFOiU6ZToV+cy+jkeeZWtf8rAvOf23Lj7sS9L2JUf7kq19ybV/zd+tf8/fRvui7/R0CnSKdEp0ynQq8pl9HY88y9a+ZP33zM3sSz7sS9L2JUf7kq19ySX7knfsS260L/pOT6dAp0inRKdMpyKf2dfxyLNs7Use9iVn9iUf9iVp+5KjfcnWvuSSfck79iU32hd9p6dToFOkU6JTplORz+zreORZtvYlD/uSM/uSD/uStH3J0b5ka19yyb7kHfuSG+2LvtPTKdAp0inRKdOpyGf2dTzyLFv7kod9yZl9yYd9Sdq+5GhfsrUvuWRf8o59yY32Rd/p6RToFOmU6JTpVOQz+zoeeZatfcnDvuTMvuTDviRtX3K0L9nal1yyL3nHvuRG+6Lv9HQKdIp0SnTKdCrymX0djzzL1r7kYV9yZl/qYV+Kti812pdq7Ust2Ze6Y19qo33Rd3o6BTpFOiU6ZToV9cy+jkeeVWtf6rAvNbMv9bAvRduXGu1LtfalluxL3bEvtdG+6Ds9nQKdIp0SnTKdinpmX8cjz6q1L3XYl5rZl3rYl6LtS432pVr7Ukv2pe7Yl9poX/Sdnk6BTpFOiU6ZTkU9s6/jkWfV2pc67EvN7Es97EvR9qVG+1Ktfakl+1J37EtttC/6Tk+nQKdIp0SnTKeintnX8cizau1LHfalZvalHvalaPtSo32p1r7Ukn2pO/alNtoXfaenU6BTpFOiU6ZTUc/s63jkWbX2pQ77UtM/ZOFhX4q2LzXal+r+hf1r/8b+W//K/o32Rd/p6RToFOmU6JTpVNQz+1L1X1Df/Rvq67+ifmZf6mFfirYvNdqXau1LLdmXumNfaqN90Xd6OgU6RTolOmU6FfXMvo5HnlVrX+qwLzWzL/WwL0XblxrtS7X2pZbsS92xL7XRvug7PZ0CnSKdEp0ynYp6Zl/HI8+qtS912Jea2Zd62Jei7UuN9qVa+1JL9qXu2JfaaF/0nZ5OgU6RTolOmU5FPbOv45Fn1dqXOuxLzexLPexL0falRvtSrX2pJftSd+xLbbQv+k5Pp0CnSKdEp0ynop7Z1/HIs2rtSx32pWb2pR/2pWn70qN96da+9JJ96Tv2pTfaF32np1OgU6RTolOmU9HP7Ot45Fm39qUP+9Iz+9IP+9K0fenRvnRrX3rJvvQd+9Ib7Yu+09Mp0CnSKdEp06noZ/Z1PPKsW/vSh33pmX3ph31p2r70aF+6tS+9ZF/6jn3pjfZF3+npFOgU6ZTolOlU9DP7Oh551q196cO+9My+9MO+NG1ferQv3dqXXrIvfce+9Eb7ou/0dAp0inRKdMp0KvqZfR2PPOvWvvRhX3pmX/phX5q2Lz3al27tSy/Zl75jX3qjfdF3ejoFOkU6JTplOhX9zL6OR551a1/6sC89sy/9sC9N25ce7Uu39qWX7EvfsS+90b7oOz2dAp0inRKdMp2KfmZfxyPPurUvfdiXnv75jM0f0Aj+hMbLH9HY/RmNa39I460/pXHnH9MI/pxG8Ac1gj+pEfxRjeDPagR/WOPTP62x/nGN3Z/XWP/Axpl96Yd9adq+9GhfurUvvWRf+o596Y32Rd/p6RToFOmU6JTpVPQz+zoeedatfenDvvTMvvTDvjRtX3q0L93al16yL33HvvRG+6Lv9HQKdIp0SnTKdCr6mX0djzzr1r70YV96Zl/6YV+ati892pdu7Usv2Ze+Y196o33Rd3o6BTpFOiU6ZToV/cy+jkeedWtf+rAvPbMv87AvQ9uXGe3LtPZlluzL3LEvs9G+6Ds9nQKdIp0SnTKdinlmX8cjz6a1L3PYl5nZl3nYl6Hty4z2ZVr7Mkv2Ze7Yl9loX/Sdnk6BTpFOiU6ZTsU8s6/jkWfT2pc57MvM7Ms87MvQ9mVG+zKtfZkl+zJ37MtstC/6Tk+nQKdIp0SnTKdintnX8cizae3LHPZlZvZlHvZlaPsyo32Z1r7Mkn2ZO/ZlNtoXfaenU6BTpFOiU6ZTMc/s63jk2bT2ZQ77MjP7Mg/7MrR9mdG+TGtfZsm+zB37Mhvti77T0ynQKdIp0SnTqZhn9nU88mxa+zKHfZmZfZmHfRnavsxoX6a1L7NkX+aOfZmN9kXf6ekU6BTplOiU6VTMM/s6Hnk2rX2Zw77MzL7Mw74MbV9mtC/T2pdZsi9zx77MRvui7/R0CnSKdEp0ynQq5pl9HY88m9a+zGFfZmZf5mFfhrYvM9qXae3LLNmXuWNfZqN90Xd6OgU6RTolOmU6FfPMvo5Hnk1rX+awLzOzL/OwL0Pblxnty7T2ZZbsy9yxL7PRvug7PZ0CnSKdEp0ynYp5Zl/HI8+mtS9z2JeZ2Zd52Jeh7cuM9mVa+zJL9mXu2JfZaF/0nZ5OgU6RTolOmU7FPLOv45Fn09qXOezLzOzLPuzL0vZlR/uyrX3ZJfuyd+zLbrQv+k5Pp0CnSKdEp0ynYp/Z1/HIs23tyx72ZWf2ZR/2ZWn7sqN92da+7JJ92Tv2ZTfaF32np1OgU6RTolOmU7HP7Ot45Nm29mUP+7Iz+7IP+7K0fdnRvmxrX3bJvuwd+7Ib7Yu+09Mp0CnSKdEp06nYZ/Z1PPJsW/uyh33ZmX3Zh31Z2r7saF+2tS+7ZF/2jn3ZjfZF3+npFOgU6ZTolOlU7DP7Oh55tq192cO+7My+7MO+LG1fdrQv29qXXbIve8e+7Eb7ou/0dAp0inRKdMp0KvaZfR2PPNvWvuxhX3ZmX/ZhX5a2Lzval23tyy7Zl71jX3ajfdF3ejoFOkU6JTplOhX7zL6OR55ta1/2sC87sy/7sC9L25cd7cu29mWX7MvesS+70b7oOz2dAp0inRKdMp2KfWZfxyPPtrUve9iXndmXfdiXpe3LjvZlW/uyS/Zl79iX3Whf9J2eToFOkU6JTplOxT6zr+ORZ9valz3sy87syz7sy9L2ZUf7sq192SX7snfsy260L/pOT6dAp0inRKdMp2Kf2dfxyLNt7cse9mVn9mUf9mVp+7KjfdnWvuySfdk79mU32hd9p6dToFOkU6JTplOxz+zreOTZtvZlD/uyM/tyD/tytH250b5ca19uyb7cHftyG+2LvtPTKdAp0inRKdOpuGf2dTzy7Fr7cod9uZl9uYd9Odq+3GhfrrUvt2Rf7o59uY32Rd/p6RToFOmU6JTpVNwz+zoeeXatfbnDvtzMvtzDvhxtX260L9fal1uyL3fHvtxG+6Lv9HQKdIp0SnTKdCrumX0djzy71r7cYV9uZl/uYV+Oti832pdr7cst2Ze7Y19uo33Rd3o6BTpFOiU6ZToV98y+jkeeXWtf7rAvN7Mv97AvR9uXG+3LtfblluzL3bEvt9G+6Ds9nQKdIp0SnTKdintmX8cjz661L3fYl5vZl3vYl6Pty4325Vr7ckv25e7Yl9toX/Sdnk6BTpFOiU6ZTsU9s6/jkWfX2pc77MvN7Ms97MvR9uVG+3Ktfbkl+3J37MtttC/6Tk+nQKdIp0SnTKfintnX8ciza+3LHfblZvblHvblaPtyo3251r7ckn25O/blNtoXfaenU6BTpFOiU6ZTcc/s63jk2bX25Q77cjP7cg/7crR9udG+XGtfbsm+3B37chvti77T0ynQKdIp0SnTqbhn9nU88uxa+3KHfbmZfbmHfTnavtxoX661L7dkX+6OfbmN9kXf6ekU6BTplOiU6VTcM/s6Hnl2rX25w77czL5en+MPM7/9NbXz2R5Dv/5Is/Tr91am7l8227p79X/22OBaD1oALYKWQMuglbP1m9enn49vz9Vfv/c++9u3s91ZszvtYWdrd2fd7ksk1r9svvtGFAPXetACaBG0BFoGrZxt3J3V3Vm3O6u7z3yMvfBmd1rIztbuzrvdl5Csf9l8941MBq71oAXQImgJtAxaOdu4O6+78253XnefiRl7Ec3utJmdrd1ddLsvsVn/svnuG+EMXOtBC6BF0BJoGbRytnF3UXcX3e6i7j4zNPYim91pRTtbu7vsdl+CtP5l8903Uhq41oMWQIugJdAyaOVs4+6y7i673WXdfaZq7EU1u9OudrZ2d9XtvkRr/cvmu2/ENXCtBy2AFkFLoGXQytnG3VXdXXW7q7r7zNleH2CzOy1tZ2t3193uS9jWv2y++0ZuA9d60AJoEbQEWgatnG3cXdfddbe7rrvP5I29mGZ32t7O1u5uut2X+K1/2Xz3jQAHrvWgBdAiaAm0DFo527i7qbubbndTd59ZHHuxze60xp2t3d12uy+BXP+y+e4bSQ5c60ELoEXQEmgZtHK2cXdbd7fd7rbuPtM59uKa3WmfO1u7u+t2XyK6/mXz3TciHbjWgxZAi6Al0DJo5Wzj7q7u7rrdXd196nWs8ToGvI5dvI51XsfWvI7d8jq20+voaz1oAbQIWgItg1bONuzOqtexzutY9To29TrWeB0DXscuXsc6r2NrXsdueR3b6XX0tR60AFoELYGWQStnG3evXsc6r2PV69jU61jjdQx4Hbt4Heu8jq15HbvldWyn19HXetACaBG0BFoGrZxt3L16Heu8jlWvY1OvY43XMeB17OJ1rPM6tuZ17JbXsZ1eR1/rQQugRdASaBm0crZx9+p1rPM6Vr2OTb2ONV7HgNexi9exzuvYmtexW17Hdnodfa0HLYAWQUugZdDK2cbdq9exzutY9To29TrWeB0DXscuXsc6r2NrXsdueR3b6XX0tR60AFoELYGWQStnG3evXsc6r2PV69jU61jjdQx4Hbt4Heu8jq15HbvldWyn19HXetACaBG0BFoGrZxt3L16Heu8jlWvY1OvY43XMeB17OJ1rPM6tuZ17JbXsZ1eR1/rQQugRdASaBm0crZx9+p1rPM6Vr2OTb2ONV7HgNexi9exzuvYmtexW17Hdnodfa0HLYAWQUugZdDK2cbdq9exzutY9To29TrWeB0DXscuXsc6r2NrXsdueR3b6XX0tR60AFoELYGWQStnG3evXsc6r2PV69jU63jjdRx4Hb94He+8jq95Hb/ldXyn19HXetACaBG0BFoGrZxt2J1Xr+Od1/HqdXzqdbzxOg68jl+8jndex9e8jt/yOr7T6+hrPWgBtAhaAi2DVs427l69jndex6vX8anX8cbrOPA6fvE63nkdX/M6fsvr+E6vo6/1oAXQImgJtAxaOdu4e/U63nkdr17Hp17HG6/jwOv4xet453V8zev4La/jO72OvtaDFkCLoCXQMmjlbOPu1et453W8eh2feh1vvI4Dr+MXr+Od1/E1r+O3vI7v9Dr6Wg9aAC2ClkDLoJWzjbtXr+Od1/HqdXzqdbzxOg68jl+8jndex9e8jt/yOr7T6+hrPWgBtAhaAi2DVs427l69jndex6vX8anX8cbrOPA6fvE63nkdX/M6fsvr+E6vo6/1oAXQImgJtAxaOdu4e/U63nkdr17Hp17HG6/jwOv4xet453V8zev4La/jO72OvtaDFkCLoCXQMmjlbOPu1et453W8eh2feh1vvI4Dr+MXr+Od1/E1r+O3vI7v9Dr6Wg9aAC2ClkDLoJWzjbtXr+Od1/HqdXzqdbzxOg68jl+8jndex9e8jt/yOr7T6+hrPWgBtAhaAi2DVs427l69jndex6vX8anXicbrBPA6cfE60XmdWPM6ccvrxE6vo6/1oAXQImgJtAxaOduwu6heJzqvE9XrxNTrRON1AniduHid6LxOrHmduOV1YqfX0dd60AJoEbQEWgatnG3cvXqd6LxOVK8TU68TjdcJ4HXi4nWi8zqx5nXilteJnV5HX+tBC6BF0BJoGbRytnH36nWi8zpRvU5MvU40XieA14mL14nO68Sa14lbXid2eh19rQctgBZBS6Bl0MrZxt2r14nO60T1OjH1OtF4nQBeJy5eJzqvE2teJ255ndjpdfS1HrQAWgQtgZZBK2cbd69eJzqvE9XrxNTrRON1AniduHid6LxOrHmduOV1YqfX0dd60AJoEbQEWgatnG3cvXqd6LxOVK8TU68TjdcJ4HXi4nWi8zqx5nXilteJnV5HX+tBC6BF0BJoGbRytnH36nWi8zpRvU5MvU40XieA14mL14nO68Sa14lbXid2eh19rQctgBZBS6Bl0MrZxt2r14nO60T1OjH1OtF4nQBeJy5eJzqvE2teJ255ndjpdfS1HrQAWgQtgZZBK2cbd69eJzqvE9XrxNTrRON1AniduHid6LxOrHmduOV1YqfX0dd60AJoEbQEWgatnG3cvXqd6LxOVK8TU6+TjddJ4HXy4nWy8zq55nXyltfJnV5HX+tBC6BF0BJoGbRytmF3Wb1Odl4nq9fJqdfJxusk8Dp58TrZeZ1c8zp5y+vkTq+jr/WgBdAiaAm0DFo527h79TrZeZ2sXienXicbr5PA6+TF62TndXLN6+Qtr5M7vY6+1oMWQIugJdAyaOVs4+7V62TndbJ6nZx6nWy8TgKvkxevk53XyTWvk7e8Tu70OvpaD1oALYKWQMuglbONu1evk53Xyep1cup1svE6CbxOXrxOdl4n17xO3vI6udPr6Gs9aAG0CFoCLYNWzjbuXr1Odl4nq9fJqdfJxusk8Dp58TrZeZ1c8zp5y+vkTq+jr/WgBdAiaAm0DFo527h79TrZeZ2sXienXicbr5PA6+TF62TndXLN6+Qtr5M7vY6+1oMWQIugJdAyaOVs4+7V62TndbJ6nZx6nWy8TgKvkxevk53XyTWvk7e8Tu70OvpaD1oALYKWQMuglbONu1evk53Xyep1cup1svE6CbxOXrxOdl4n17xO3vI6udPr6Gs9aAG0CFoCLYNWzjbuXr1Odl4nq9fJqdfJxusk8Dp58TrZeZ1c8zp5y+vkTq+jr/WgBdAiaAm0DFo527h79TrZeZ2sXienXqcar1PA69TF61TndWrN69Qtr1M7vY6+1oMWQIugJdAyaOVsw+6qep3qvE5Vr1NTr1ON1yngderidarzOrXmdeqW16mdXkdf60ELoEXQEmgZtHK2cffqdarzOlW9Tk29TjVep4DXqYvXqc7r1JrXqVtep3Z6HX2tBy2AFkFLoGXQytnG3avXqc7rVPU6NfU61XidAl6nLl6nOq9Ta16nbnmd2ul19LUetABaBC2BlkErZxt3r16nOq9T1evU1OtU43UKeJ26eJ3qvE6teZ265XVqp9fR13rQAmgRtARaBq2cbdy9ep3qvE5Vr1NTr1ON1yngderidarzOrXmdeqW16mdXkdf60ELoEXQEmgZtHK2cffqdarzOlW9Tk29TjVep4DXqYvXqc7r1JrXqVtep3Z6HX2tBy2AFkFLoGXQytnG3avXqc7rVPU6NfU61XidAl6nLl6nOq9Ta16nbnmd2ul19LUetABaBC2BlkErZxt3r16nOq9T1evU1OtU43UKeJ26eJ3qvE6teZ265XVqp9fR13rQAmgRtARaBq2cbdy9ep3qvE5Vr1NTr1ON1yngderidarzOrXmdeqW16mdXkdf60ELoEXQEmgZtHK2cffqdarzOlW9Tk29Tjdep4HX6YvX6c7r9JrX6Vtep3d6HX2tBy2AFkFLoGXQytmG3XX1Ot15na5ep6depxuv08Dr9MXrdOd1es3r9C2v0zu9jr7WgxZAi6Al0DJo5Wzj7tXrdOd1unqdnnqdbrxOA6/TF6/TndfpNa/Tt7xO7/Q6+loPWgAtgpZAy6CVs427V6/Tndfp6nV66nW68ToNvE5fvE53XqfXvE7f8jq90+voaz1oAbQIWgItg1bONu5evU53Xqer1+mp1+nG6zTwOn3xOt15nV7zOn3L6/ROr6Ov9aAF0CJoCbQMWjnbuHv1Ot15na5ep6depxuv08Dr9MXrdOd1es3r9C2v0zu9jr7WgxZAi6Al0DJo5Wzj7tXrdOd1unqdnnqdbrxOA6/TF6/TndfpNa/Tt7xO7/Q6+loPWgAtgpZAy6CVs427V6/Tndfp6nV66nW68ToNvE5fvE53XqfXvE7f8jq90+voaz1oAbQIWgItg1bONu5evU53Xqer1+mp1+nG6zTwOn3xOt15nV7zOn3L6/ROr6Ov9aAF0CJoCbQMWjnbuHv1Ot15na5ep6depxuv08Dr9MXrdOd1es3r9C2v0zu9jr7WgxZAi6Al0DJo5Wzj7tXrdOd1unqdnnqdabzOAK8zF68zndeZNa8zt7zO7PQ6+loPWgAtgpZAy6CVsw27m+p1pvM6U73OTL3ONF5ngNeZi9eZzuvMmteZW15ndnodfa0HLYAWQUugZdDK2cbdq9eZzutM9Toz9TrTeJ0BXmcuXmc6rzNrXmdueZ3Z6XX0tR60AFoELYGWQStnG3evXmc6rzPV68zU60zjdQZ4nbl4nem8zqx5nbnldWan19HXetACaBG0BFoGrZxt3L16nem8zlSvM1OvM43XGeB15uJ1pvM6s+Z15pbXmZ1eR1/rQQugRdASaBm0crZx9+p1pvM6U73OTL3ONF5ngNeZi9eZzuvMmteZW15ndnodfa0HLYAWQUugZdDK2cbdq9eZzutM9Toz9TrTeJ0BXmcuXmc6rzNrXmdueZ3Z6XX0tR60AFoELYGWQStnG3evXmc6rzPV68zU60zjdQZ4nbl4nem8zqx5nbnldWan19HXetACaBG0BFoGrZxt3L16nem8zlSvM1OvM43XGeB15uJ1pvM6s+Z15pbXmZ1eR1/rQQugRdASaBm0crZx9+p1pvM6U73OTL3ONF5ngNeZi9eZzuvMmteZW15ndnodfa0HLYAWQUugZdDK2cbdq9eZzutM9Toz9TrbeJ0FXmcvXmc7r7NrXmdveZ3d6XX0tR60AFoELYGWQStnG3a31ets53W2ep2dep1tvM4Cr7MXr7Od19k1r7O3vM7u9Dr6Wg9aAC2ClkDLoJWzjbtXr7Od19nqdXbqdbbxOgu8zl68znZeZ9e8zt7yOrvT6+hrPWgBtAhaAi2DVs427l69znZeZ6vX2anX2cbrLPA6e/E623mdXfM6e8vr7E6vo6/1oAXQImgJtAxaOdu4e/U623mdrV5np15nG6+zwOvsxets53V2zevsLa+zO72OvtaDFkCLoCXQMmjlbOPu1ets53W2ep2dep1tvM4Cr7MXr7Od19k1r7O3vM7u9Dr6Wg9aAC2ClkDLoJWzjbtXr7Od19nqdXbqdbbxOgu8zl68znZeZ9e8zt7yOrvT6+hrPWgBtAhaAi2DVs427l69znZeZ6vX2anX2cbrLPA6e/E623mdXfM6e8vr7E6vo6/1oAXQImgJtAxaOdu4e/U623mdrV5np15nG6+zwOvsxets53V2zevsLa+zO72OvtaDFkCLoCXQMmjlbOPu1ets53W2ep2dep1tvM4Cr7MXr7Od19k1r7O3vM7u9Dr6Wg9aAC2ClkDLoJWzjbtXr7Od19nqdXbqda7xOge8zl28znVe59a8zt3yOrfT6+hrPWgBtAhaAi2DVs427O6q17nO61z1Ojf1Otd4nQNe5y5e5zqvc2te5255ndvpdfS1HrQAWgQtgZZBK2cbd69e5zqvc9Xr3NTrXON1Dnidu3id67zOrXmdu+V1bqfX0dd60AJoEbQEWgatnG3cvXqd67zOVa9zU69zjdc54HXu4nWu8zq35nXulte5nV5HX+tBC6BF0BJoGbRytnH36nWu8zpXvc5Nvc41XueA17mL17nO69ya17lbXud2eh19rQctgBZBS6Bl0MrZxt2r17nO61z1Ojf1Otd4nQNe5y5e5zqvc2te5255ndvpdfS1HrQAWgQtgZZBK2cbd69e5zqvc9Xr3NTrXON1Dnidu3id67zOrXmdu+V1bqfX0dd60AJoEbQEWgatnG3cvXqd67zOVa9zU69zjdc54HXu4nWu8zq35nXulte5nV5HX+tBC6BF0BJoGbRytnH36nWu8zpXvc5Nvc41XueA17mL17nO69ya17lbXud2eh19rQctgBZBS6Bl0MrZxt2r17nO61z1Ojf1Otd4nQNe5y5e5zqvc2te5255ndvpdfS1HrQAWgQtgZZBK2cbd69e5zqvc9Xr3Mzr+MvD697+mtr9bI/dX3+k2f31eyu79y+b7d69+j97d3CtBy2AFkFLoGXQytn63evTz8e35+6v33vf/e3b2e6s2Z32urO1u7Nu9yWv6182332j14FrPWgBtAhaAi2DVs427s7q7qzbndXdZ17HX3izO+11Z2t3593uS17Xv2y++0avA9d60AJoEbQEWgatnG3cndfdebc7r7vPvI6/iGZ32uvO1u4uut2XvK5/2Xz3jV4HrvWgBdAiaAm0DFo527i7qLuLbndRd595HX+Rze60152t3V12uy95Xf+y+e4bvQ5c60ELoEXQEmgZtHK2cXdZd5fd7rLuPvM6/qKa3WmvO1u7u+p2X/K6/mXz3Td6HbjWgxZAi6Al0DJo5Wzj7qrurrrdVd195nX8RTe70153tnZ33e2+5HX9y+a7b/Q6cK0HLYAWQUugZdDK2cbddd1dd7vruvvM6/iLaXanve5s7e6m233J6/qXzXff6HXgWg9aAC2ClkDLoJWzjbuburvpdjd195nXvT6kZnfa687W7m673Ze8rn/ZfPeNXgeu9aAF0CJoCbQMWjnbuLutu9tud1t3n3kdf3HN7rTXna3d3XW7L3ld/7L57hu9DlzrQQugRdASaBm0crZxd1d3d93uru4+9TrWeB0DXscuXsc6r2NrXsdueR3b6XX0tR60AFoELYGWQStnG3Zn1etY53Wseh2beh1rvI4Br2MXr2Od17E1r2O3vI7t9Dr6Wg9aAC2ClkDLoJWzjbtXr2Od17HqdWzqdazxOga8jl28jnVex9a8jt3yOrbT6+hrPWgBtAhaAi2DVs427l69jnVex6rXsanXscbrGPA6dvE61nkdW/M6dsvr2E6vo6/1oAXQImgJtAxaOdu4e/U61nkdq17Hpl7HGq9jwOvYxetY53VszevY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dqe97mzt7rLbfcnr+pfNd9/odeBaD1oALYKWQMuglbONu8u6u+x2l3X3mdfJF9XsTnvd2drdVbf7ktf1L5vvvtHrwLUetABaBC2BlkErZxt3V3V31e2u6u4zr5Mvutmd9rqztbvrbvclr+tfNt99o9eBaz1oAbQIWgItg1bONu6u6+66213X3WdeJ19MszvtdWdrdzfd7kte179svvtGrwPXetACaBG0BFoGrZxt3N3U3U23u6m7z7xOvthmd9rrztbubrvdl7yuf9l8941eB671oAXQImgJtAxaOdu4u6272253W3efeZ18cc3utNedrd3ddbsveV3/svnuG70OXOtBC6BF0BJoGbRytnF3V3d33e6u7j71OtZ4HQNexy5exzqvY2tex255HdvpdfS1HrQAWgQtgZZBK2cbdmfV61jndax6HZt6HWu8jgGvYxevY53XsTWvY7e8ju30OvpaD1oALYKWQMuglbONu1evY53Xsep1bOp1rPE6BryOXbyOdV7H1ryO3fI6ttPr6Gs9aAG0CFoCLYNWzjbuXr2OdV7HqtexqdexxusY8Dp28TrWeR1b8zp2y+vYTq+jr/WgBdAiaAm0DFo527h79TrWeR2rXsemXscar2PA69jF61jndWzN69gtr2M7vY6+1oMWQIugJdAyaOVs4+7V61jndax6HZt6HWu8jgGvYxevY53XsTWvY7e8ju30OvpaD1oALYKWQMuglbONu1evY53Xsep1bOp1rPE6BryOXbyOdV7H1ryO3fI6ttPr6Gs9aAG0CFoCLYNWzjbuXr2OdV7HqtexqdexxusY8Dp28TrWeR1b8zp2y+vYTq+jr/WgBdAiaAm0DFo527h79TrWeR2rXsemXscar2PA69jF61jndWzN69gtr2M7vY6+1oMWQIugJdAyaOVs4+7V61jndax6HZt6HWu8jgGvYxevY53XsTWvY7e8ju30OvpaD1oALYKWQMuglbONu1evY53Xsep1bOp1vPE6DryOX7yOd17H17yO3/I6vtPr6Gs9aAG0CFoCLYNWzjbszqvX8c7rePU6PvU63ngdB17HL17HO6/ja17Hb3kd3+l19LUetABaBC2BlkErZxt3r17HO6/j1ev41Ot443UceB2/eB3vvI6veR2/5XV8p9fR13rQAmgRtARaBq2cbdy9eh3vvI5Xr+NTr+ON13Hg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";
+(function(){
+  try {
+    const bin = atob(XLSX_TEMPLATE_B64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    $('tpl-link').href = URL.createObjectURL(blob);
+  } catch(e){ /* file:// 등에서 실패 가능 — 무시 */ }
+})();
+</script>
+</body>
+</html>
