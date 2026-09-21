@@ -596,9 +596,28 @@ const SUPABASE_KEY = 'sb_publishable_4gKXCXn0vcDqPxem0NsTYg_jnVdYjLn';
 const TABLE = 'influencers';
 let supa = null;
 let cloudReady = false;
+
+// 일부 확장 프로그램(예: 웹 스크래핑 도구)이 최상위 페이지의 window.fetch를 가로채면서
+// Supabase 요청이 "Failed to fetch"로 막히는 경우가 있음. 숨겨진 iframe은 그 확장 프로그램이
+// 건드리지 않은 자기만의 window/fetch를 가지고 있어서, 거기서 fetch를 빌려와 Supabase
+// 클라이언트에 지정해주면 그런 확장 프로그램의 간섭을 우회할 수 있음.
+function getCleanFetch() {
+  try {
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.documentElement.appendChild(iframe);
+    if (iframe.contentWindow && iframe.contentWindow.fetch) {
+      return iframe.contentWindow.fetch.bind(iframe.contentWindow);
+    }
+  } catch (e) { /* 폴백으로 진행 */ }
+  return window.fetch.bind(window);
+}
+
 try {
   if (SUPABASE_URL !== 'DISABLED' && window.supabase && window.supabase.createClient) {
-    supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      global: { fetch: getCleanFetch() }
+    });
     cloudReady = true;
   }
 } catch(e) { console.error('Supabase 클라이언트 초기화 실패:', e); }
