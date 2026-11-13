@@ -1696,6 +1696,21 @@ function normContact(v){
   return CONTACTS.includes(s) ? s : s; // 목록 밖이면 원문 유지
 }
 
+// 추적 파라미터·www·끝 슬래시·인스타 /p|reel|reels 경로 차이·유튜브 /featured를 무시한 비교용 URL
+function normUrl(u){
+  const s = String(u || '').trim();
+  if (!s) return '';
+  try {
+    const p = new URL(/^https?:\/\//i.test(s) ? s : 'https://' + s);
+    const host = p.hostname.toLowerCase().replace(/^www\./, '');
+    let path = p.pathname.replace(/\/{2,}/g, '/').replace(/\/+$/, '');
+    if (host === 'instagram.com') path = path.replace(/^\/(p|reel|reels|tv)\//, '/');
+    if (host === 'youtube.com') path = path.replace(/\/featured$/, '');
+    const keep = host === 'youtube.com' && path === '/watch' ? (p.searchParams.get('v') ? '?v=' + p.searchParams.get('v') : '') : '';
+    return (host + path + keep).toLowerCase();
+  } catch (e) { return s.toLowerCase(); }
+}
+
 function importRows(rows){
   if (!rows.length) { showMsg('빈 파일이거나 데이터를 찾을 수 없습니다.', false); return; }
 
@@ -1759,11 +1774,14 @@ function importRows(rows){
 
     // 같은 "핸들(또는 이름) + 캠페인" 조합이 이미 있으면 새로 추가하지 않고 그 행을 최신 값으로 업데이트
     // (엑셀을 다시 받아 수치를 갱신한 뒤 재업로드하는 흐름을 지원 — id·댓글내용·마지막 자동확인 시각은 보존)
+    // 양쪽 모두 URL이 있으면 URL이 같을 때만 같은 건 (같은 인플루언서의 여러 게시물을 구분), 없으면 핸들→이름 순으로 비교
     const existing = data.find(r => {
       if ((r.camp || '') !== (rec.camp || '')) return false;
-      return rec.handle
-        ? (r.handle || '').toLowerCase() === rec.handle.toLowerCase()
-        : (r.name || '').toLowerCase() === rec.name.toLowerCase();
+      const ru = normUrl(r.url), nu = normUrl(rec.url);
+      if (ru && nu) return ru === nu;
+      const rh = (r.handle || '').toLowerCase(), nh = rec.handle.toLowerCase();
+      if (rh && nh) return rh === nh;
+      return (r.name || '').toLowerCase() === rec.name.toLowerCase();
     });
     if (existing) {
       touched.forEach(f => { if (f !== 'name') existing[f] = rec[f]; });
